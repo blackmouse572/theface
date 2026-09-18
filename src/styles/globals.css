@@ -1,0 +1,525 @@
+/*
+ * TheFace - design tokens.
+ *
+ * Visual language: oa-design (https://github.com/OpenLabs-so/oa-design, MIT,
+ * Copyright (c) 2026 Voprex Labs). Palette and radius values are taken from
+ * that project's `skills/oa-design/_root.css`. Nothing here comes from
+ * OpenLabs-so/openanalytics, which is AGPL-3.0.
+ *
+ * Read `./README.md` before changing anything in this file.
+ *
+ * Load order matters. `@import` must stay first; `@theme inline` must come
+ * before `:root` so the bridge is declared before the values it points at.
+ */
+
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+ * Fonts
+ *
+ * Self-hosted through Fontsource. We are on Vite, so there is no `next/font`.
+ * We write the @font-face rules by hand instead of importing Fontsource's own
+ * stylesheets for one reason: the `font-weight` descriptor below is a range,
+ * and that range is what enforces the weight ceiling. Fontsource ships
+ * `font-weight: 100 900`, which would let a stray `font-bold` render at 700.
+ *
+ * Required packages:
+ *   @fontsource-variable/inter-tight
+ *   @fontsource/geist-mono
+ *
+ * If the bundler cannot resolve the bare specifiers in url(), replace these
+ * rules with `@import "@fontsource-variable/inter-tight/wght.css";` and
+ * `@import "@fontsource/geist-mono/400.css";` - but you then lose the clamp.
+ * ------------------------------------------------------------------------- */
+
+/* Inter Tight - variable, clamped to 300–500. */
+@font-face {
+  font-family: "Inter Tight Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 500;
+  src: url("@fontsource-variable/inter-tight/files/inter-tight-latin-wght-normal.woff2")
+    format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter Tight Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 500;
+  src: url("@fontsource-variable/inter-tight/files/inter-tight-latin-ext-wght-normal.woff2")
+    format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/* Contenders type their own names onto a Board, so the Vietnamese subset
+   earns its place. A subset only downloads when a glyph in it is used. */
+@font-face {
+  font-family: "Inter Tight Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 500;
+  src: url("@fontsource-variable/inter-tight/files/inter-tight-vietnamese-wght-normal.woff2")
+    format("woff2");
+  unicode-range:
+    U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301,
+    U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+
+/* Geist Mono - 400 and 500 only. */
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("@fontsource/geist-mono/files/geist-mono-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("@fontsource/geist-mono/files/geist-mono-latin-500-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("@fontsource/geist-mono/files/geist-mono-latin-ext-500-normal.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/* ---------------------------------------------------------------------------
+ * The bridge
+ *
+ * oa-design ships plain custom properties. Tailwind only builds a utility for
+ * a name it knows as a theme variable. This block is the translation, one line
+ * per token: `--color-<name>: var(--<name>)`.
+ *
+ * The `inline` keyword is load-bearing. Without it Tailwind re-emits every one
+ * of these into `:root`, and its copy - not ours - becomes the value the page
+ * reads. With it, Tailwind writes the `var()` straight into the utility and
+ * emits nothing, so `:root` and `.dark` below stay the only place a value is
+ * ever set. That is what makes a theme toggle work: flip one class, every
+ * utility follows.
+ * ------------------------------------------------------------------------- */
+
+@theme inline {
+  /* -- Typography -------------------------------------------------------- */
+  --font-sans:
+    "Inter Tight Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  /* -- Surfaces and ink -------------------------------------------------- */
+  --color-ink: var(--ink);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* -- Derived neutrals -------------------------------------------------- */
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* -- The one accent ---------------------------------------------------- */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-ring: var(--ring);
+
+  /* -- Secondary controls ------------------------------------------------ */
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  /* -- Semantic ---------------------------------------------------------- */
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* -- Chart ------------------------------------------------------------- */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-label: var(--chart-label);
+
+  /* -- Radius -----------------------------------------------------------
+   * This scale MUST live here, not in `:root`.
+   *
+   * `--radius-*` is one of Tailwind v4's own theme namespaces; it is where
+   * `rounded-sm` … `rounded-4xl` read their values from. Declaring the same
+   * names in `:root` does not extend Tailwind, it overwrites Tailwind's
+   * emitted theme variables from outside the theme, and every `rounded-*`
+   * in the app silently changes size. oa-design's `_root.css` puts them in
+   * `:root`; we move them here, where Tailwind treats them as the scale.
+   *
+   * Only `--radius` is a plain property in `:root`. Everything else is a
+   * multiple of it, so one number moves the whole system.
+   * -------------------------------------------------------------------- */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* -- Elevation --------------------------------------------------------
+   * Elevation is binary: a thing is resting or it is floating. There is no
+   * ten-step ramp. These two produce `shadow-resting` and `shadow-floating`.
+   *
+   * The raw values live in `:root` under `--elevation-*`, not `--shadow-*`,
+   * because `--shadow-*` is the theme namespace itself - a theme key that
+   * referenced a `:root` property of its own name would be self-referential.
+   * -------------------------------------------------------------------- */
+  --shadow-resting: var(--elevation-resting);
+  --shadow-floating: var(--elevation-floating);
+}
+
+/* ---------------------------------------------------------------------------
+ * Light theme - the single source of truth.
+ *
+ * NEUTRALS ARE DERIVED, NEVER PICKED. There is exactly one grey in this file,
+ * `--ink`. Every hairline and every wash is that ink mixed into transparency
+ * at a percentage off a fixed ladder: 4, 5, 10, 12, 14. Do not add a grey hex.
+ * If a divider needs more presence, move it up the ladder.
+ * ------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light;
+
+  /* The one ink. */
+  --ink: #292929;
+
+  /* Stage and surfaces. */
+  --background: #f6f6f6; /* the grey stage between plates */
+  --card: #ffffff;
+  --popover: #ffffff;
+  --foreground: var(--ink);
+  --card-foreground: var(--ink);
+  --popover-foreground: var(--ink);
+
+  /* Ink-derived neutrals: the percentages ARE the system. */
+  --border: color-mix(in srgb, var(--ink) 12%, transparent);
+  --input: color-mix(in srgb, var(--ink) 14%, transparent);
+  --accent: color-mix(in srgb, var(--ink) 5%, transparent); /* hover wash */
+  --accent-foreground: var(--ink);
+  --muted: color-mix(in srgb, var(--ink) 5%, transparent);
+  --muted-foreground: #6d6d6d;
+
+  /* The one accent, and its focus ring. */
+  --primary: #305dde;
+  --primary-foreground: #ffffff;
+  --ring: #3ba6f1;
+
+  /* Secondary controls: flat grey, no border. */
+  --secondary: #e9e9e9;
+  --secondary-foreground: var(--ink);
+
+  /* Semantic colours are for words and small dots, never for panel fills.
+     On light they sit on Tailwind's 500/700 rows. */
+  --destructive: oklch(0.637 0.237 25.331); /* red-500 */
+  --destructive-foreground: oklch(0.505 0.213 27.518); /* red-700 */
+  --success: oklch(0.596 0.145 163.225); /* emerald-600 */
+  --success-foreground: oklch(0.508 0.118 165.612); /* emerald-700 */
+  --warning: oklch(0.769 0.188 70.08); /* amber-500 */
+  --warning-foreground: oklch(0.555 0.163 48.998); /* amber-700 */
+  --info: oklch(0.623 0.214 259.815); /* blue-500 */
+  --info-foreground: oklch(0.488 0.243 264.376); /* blue-700 */
+
+  /* Radius: one base, multiplied in @theme inline. Never a bespoke radius. */
+  --radius: 0.625rem; /* 10px */
+
+  /* Elevation. Bridged to shadow-resting / shadow-floating above. */
+  --elevation-resting: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --elevation-floating: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  /* -- Chart -------------------------------------------------------------
+   * For the eight-axis radar that shows a Visitor's Ratings.
+   *
+   * The eight axes are labels, not colours. These five slots colour SERIES -
+   * one Visitor's Ratings against, say, the median. Assign them in order and
+   * never cycle: a sixth series folds into one grey "other" line.
+   *
+   * Overlaid series (which is what a radar draws) are checked all-pairs, and
+   * all-pairs only clears the separation floors for the FIRST THREE slots.
+   * Slots 4 and 5 are legal for side-by-side small multiples or for anything
+   * carrying a direct label; do not stack four filled webs on one chart.
+   *
+   * On white, slots 3, 4 and 5 fall below 3:1 against the surface, so they
+   * need a visible label or a table view beside them. Text always wears a
+   * text token - never a series colour.
+   * -------------------------------------------------------------------- */
+  --chart-1: #296ff0; /* the accent's chart cousin */
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+
+  /* The grid is the same hairline as every other divider in the app. That
+     one line is what stops the chart looking pasted in. It follows `--border`
+     through the theme switch on its own; do not restate it under `.dark`. */
+  --chart-grid: var(--border);
+  --chart-label: var(--muted-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+ * Dark theme.
+ *
+ * Not an inversion. The same recipe run from a light ink on near-black
+ * surfaces. Two systematic shifts: hairline percentages rise two points,
+ * because a hairline needs more presence on dark; and semantic text moves
+ * from the 700 row to the 400 row so it stays legible without glowing.
+ *
+ * PUT `.dark` ON `<html>`. Nowhere else. This block re-inks `--ink`, and the
+ * derived tokens above (`--foreground`, `--accent`, `--muted`, `--chart-grid`
+ * and the rest) read it through `var()`. A custom property substitutes its
+ * `var()`s on the element where it is DECLARED, not where it is used - so
+ * those tokens resolve once, on `:root`. `.dark` on `<html>` is the same
+ * element as `:root`, so the new ink is already in place and every derived
+ * token follows. `.dark` on `<body>` or on a wrapper div is a different
+ * element: the derived tokens would have computed against the light ink and
+ * inherited down, and dark mode would come out half applied.
+ * ------------------------------------------------------------------------- */
+
+.dark {
+  color-scheme: dark;
+
+  --ink: #ededed;
+  --background: #191919;
+  --card: #212121;
+  --popover: #242424;
+
+  --border: color-mix(in srgb, var(--ink) 14%, transparent);
+  --input: color-mix(in srgb, var(--ink) 16%, transparent);
+  --muted-foreground: #969696;
+  --secondary: #2e2e2e;
+
+  --primary: #296ff0; /* one notch brighter than light's #305dde */
+
+  --destructive-foreground: oklch(0.704 0.191 22.216); /* red-400 */
+  --success-foreground: oklch(0.765 0.177 163.223); /* emerald-400 */
+  --warning-foreground: oklch(0.828 0.189 84.429); /* amber-400 */
+  --info-foreground: oklch(0.707 0.165 254.624); /* blue-400 */
+
+  /* Chart slots are re-stepped for the dark surface, not flipped. Slot 1
+     keeps its value; it already clears the dark band. */
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+}
+
+/* ---------------------------------------------------------------------------
+ * Base
+ * ------------------------------------------------------------------------- */
+
+@layer base {
+  /* Tailwind v4 defaults an unqualified `border` to currentColor. Point it at
+     the hairline so `border` alone is always the right grey. */
+  *,
+  ::after,
+  ::before {
+    border-color: var(--border);
+  }
+
+  html {
+    /* Horizontal-overflow guard. Two declarations, in this order, on purpose.
+       `clip` is the correct value: it stops the scrollbar without creating a
+       scroll container, so `position: sticky` keeps working inside. But older
+       WebKit does not know `clip` and throws the whole declaration away - and
+       those are the exact phones where one too-wide element zooms the entire
+       page out. `hidden` lands first as the floor; `clip` overrides it
+       wherever it is understood. Never collapse these into one line. */
+    overflow-x: hidden;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    /* The body is WHITE, not the grey stage. The body is what shows through
+       overscroll bounce, and grey peeking past a white screen reads as a
+       different page. A screen that wants the stage paints it - see `.stage`. */
+    background: #ffffff;
+    color: var(--foreground);
+    font-family: var(--font-sans);
+
+    /* THE WEIGHT CEILING. 500 is the heaviest weight anywhere in TheFace.
+       `font-synthesis-weight: none` is the enforcement: without it the browser
+       will fake a bold for any weight the font cannot supply, and the ceiling
+       leaks. Hierarchy comes from size, colour and spacing - never heaviness. */
+    font-weight: 400;
+    font-synthesis-weight: none;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark body {
+    background: var(--background);
+  }
+
+  /* HEADINGS ARE 400. Not 500, not 600, not bold. Medium (500) exists and is
+     the ceiling, but a heading does not reach for it - a heading is set apart
+     by size and tight tracking. If a heading looks weak, it is too small or
+     too close to its body text. Do not fix it with weight. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+  }
+
+  /* Selection is the one accent at 45%: present enough to read as chosen,
+     transparent enough that the text under it stays the text. */
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 45%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Utilities
+ * ------------------------------------------------------------------------- */
+
+@layer utilities {
+  /* The grey stage. The body is white, so a screen that wants the stage
+     behind it paints its own full-height backdrop with this. */
+  .stage {
+    background: var(--background);
+  }
+
+  /* Ratings arrive by focus, not by pop. This is an animation, not a
+     transition: the content mounts already final, and a transition has no
+     previous value to run from. `filter: blur(0)` stays on the element after
+     the animation ends so the compositing layer does not snap. */
+  .arrive {
+    animation: face-arrive 0.3s ease-out;
+    filter: blur(0);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Unlayered: keyframes, motion preference, and the color-mix fallback.
+ * ------------------------------------------------------------------------- */
+
+@keyframes face-arrive {
+  from {
+    opacity: 0.4;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrive {
+    animation: none;
+    filter: none;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Every hairline and wash in this file is a `color-mix()`. A browser that does
+   not support it drops those declarations outright, and the result is not a
+   slightly-off grey - it is no border at all, everywhere. These literals are
+   the same mixes precomputed: #292929 is rgb(41 41 41), #ededed is
+   rgb(237 237 237), light --primary is rgb(48 93 222).
+
+   This block is unlayered and last on purpose: it must outrank the `:root` and
+   `.dark` blocks above, which are also unlayered and equally specific. */
+@supports not (color: color-mix(in srgb, red 50%, transparent)) {
+  :root {
+    --border: rgba(41, 41, 41, 0.12);
+    --input: rgba(41, 41, 41, 0.14);
+    --accent: rgba(41, 41, 41, 0.05);
+    --muted: rgba(41, 41, 41, 0.05);
+  }
+
+  .dark {
+    --border: rgba(237, 237, 237, 0.14);
+    --input: rgba(237, 237, 237, 0.16);
+    --accent: rgba(237, 237, 237, 0.05);
+    --muted: rgba(237, 237, 237, 0.05);
+  }
+
+  ::selection {
+    background: rgba(48, 93, 222, 0.45);
+  }
+
+  .dark ::selection {
+    background: rgba(41, 111, 240, 0.45);
+  }
+}

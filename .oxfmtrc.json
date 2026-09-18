@@ -1,0 +1,20 @@
+{
+  "printWidth": 100,
+  "tabWidth": 2,
+  "semi": true,
+  "trailingComma": "all",
+  "sortImports": {},
+  "sortTailwindcss": {},
+  "ignorePatterns": [
+    "dist",
+    ".output",
+    ".wrangler",
+    "**/routeTree.gen.ts",
+    "migrations",
+    "vfa.d.ts",
+    "worker-configuration.d.ts",
+    ".output",
+    "routeTree.gen.ts",
+    "**/*.md"
+  ]
+}
