@@ -12,6 +12,7 @@ export {
   buildObservationRequest,
   DEFAULT_MAX_TOKENS,
   DEFAULT_TEMPERATURE,
+  isDailyLimitError,
   observe,
   OBSERVATION_MODEL,
   ObservationError,

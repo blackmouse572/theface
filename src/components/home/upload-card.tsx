@@ -34,7 +34,19 @@ const log = debug("upload");
  * runs in the browser first, and only a Crop is ever sent.
  */
 
-const ACCEPT = "image/jpeg,image/png,image/webp";
+const ACCEPT_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPT = ACCEPT_TYPES.join(",");
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+const UNSUPPORTED_TYPE_MESSAGE = {
+  title: "That file type isn't supported",
+  body: "Use a JPG, PNG or WebP photo.",
+};
+
+const FILE_TOO_LARGE_MESSAGE = {
+  title: "That photo is too large",
+  body: "Choose a photo under 10 MB.",
+};
 
 export interface UploadCardProps {
   /** Called with the Crop once Screening passes. The Selfie itself never leaves here. */
@@ -57,17 +69,26 @@ const RATE_LIMITED_MESSAGE = {
   body: "Come back tomorrow to try again.",
 };
 
+const AI_LIMIT_MESSAGE = {
+  title: "We've hit today's limit",
+  body: "TheFace has scored as many photos as it can for today. Come back tomorrow and try again.",
+};
+
 const SERVER_ERROR_MESSAGE = {
   title: "Something went wrong on our end",
   body: "Not your photo's fault. Try again in a moment.",
 };
 
-function messageFor(reason: "turnstile" | "rate-limited" | "verdict-failed" | "error") {
+function messageFor(
+  reason: "turnstile" | "rate-limited" | "ai-limit" | "verdict-failed" | "error",
+) {
   switch (reason) {
     case "turnstile":
       return TURNSTILE_NOT_READY_MESSAGE;
     case "rate-limited":
       return RATE_LIMITED_MESSAGE;
+    case "ai-limit":
+      return AI_LIMIT_MESSAGE;
     case "error":
       return SERVER_ERROR_MESSAGE;
     case "verdict-failed":
@@ -84,6 +105,7 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
   const [stage, setStage] = useState<ProcessingStage>("idle");
   const [failure, setFailure] = useState<{ title: string; body: string } | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [score, setScore] = useState<Extract<ScoreResult, { ok: true }> | null>(null);
   // Held for a possible Claim once scoring passes. `onCrop` is a fire-and-forget
   // notification; this is what actually keeps the Crop alive between scoring and Claim.
@@ -105,12 +127,19 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
   const accept = useCallback(
     (candidate: File | undefined) => {
       if (busy) return;
-      if (candidate?.type.startsWith("image/")) {
-        setFile(candidate);
-        setFailure(null);
-        setScore(null);
-        setCrop(null);
+      if (!candidate) return;
+      if (!ACCEPT_TYPES.includes(candidate.type)) {
+        setFailure(UNSUPPORTED_TYPE_MESSAGE);
+        return;
       }
+      if (candidate.size > MAX_FILE_BYTES) {
+        setFailure(FILE_TOO_LARGE_MESSAGE);
+        return;
+      }
+      setFile(candidate);
+      setFailure(null);
+      setScore(null);
+      setCrop(null);
     },
     [busy],
   );
@@ -183,6 +212,10 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
       const scored = await log.time("score", () =>
         scoreCrop({ data: { crop: producedCrop.dataUrl, turnstileToken } }),
       );
+      // Single-use: the server has spent this token whatever the outcome, and the widget is
+      // invisible, so a fresh one has to be fetched without the Visitor doing anything.
+      setTurnstileToken(null);
+      setTurnstileReset((count) => count + 1);
 
       if (!scored.ok) {
         log.log("score: rejected", { reason: scored.reason, verdict: scored.verdict });
@@ -250,7 +283,7 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
                 variant="inverse"
                 size="icon"
                 disabled={busy}
-                onClick={() => setFile(null)}
+                onClick={reset}
                 aria-label="Choose a different photo"
                 className="absolute -top-2 -right-2"
               >
@@ -258,22 +291,23 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
               </Button>
             </motion.div>
           ) : (
-            <motion.button
+            <motion.div
               key="picker"
-              type="button"
-              onClick={() => inputRef.current?.click()}
+              className="flex flex-col items-center gap-3 text-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: FADE_IN }}
-              // `motion.button`, not `<Button>`: this needs Framer Motion's own
-              // mount/unmount animation, which `Button` — a plain function component —
-              // does not forward a ref for. `buttonVariants` keeps the two in one place
-              // regardless, so the look can't drift between the animated and plain paths.
-              className={buttonVariants({ variant: "outline" })}
             >
-              <IconPhotoPlus size={20} className="text-muted-foreground" />
-              Upload image
-            </motion.button>
+              <IconPhotoPlus size={32} className="text-muted-foreground" stroke={1.5} />
+              <p className="text-muted-foreground text-sm">
+                JPG, PNG or WebP, up to 10 MB.
+                <br />
+                One clear, front-facing photo of an adult.
+              </p>
+              <Button variant="outline" onClick={() => inputRef.current?.click()}>
+                Upload image
+              </Button>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
@@ -319,7 +353,8 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
         siteKey={import.meta.env["VITE_TURNSTILE_SITE_KEY"] ?? ""}
         onVerify={setTurnstileToken}
         onExpire={() => setTurnstileToken(null)}
-        className="mt-4"
+        resetSignal={turnstileReset}
+        className="mt-4 empty:hidden"
       />
 
       {score ? null : (

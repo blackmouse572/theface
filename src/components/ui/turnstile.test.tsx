@@ -92,6 +92,36 @@ describe("TurnstileWidget", () => {
     expect(second).toHaveBeenCalledWith("a-token");
   });
 
+  it("runs in the background, showing itself only when a challenge needs a click", async () => {
+    render(<TurnstileWidget siteKey="test" onVerify={() => {}} />);
+    await vi.waitFor(() => expect(window.turnstile?.render).toHaveBeenCalledTimes(1));
+
+    const options = (window.turnstile!.render as ReturnType<typeof vi.fn>).mock.calls[0]?.[1];
+    expect(options.appearance).toBe("interaction-only");
+  });
+
+  it("treats a widget error like an expiry, so a stale token is never kept", async () => {
+    const onExpire = vi.fn();
+    render(<TurnstileWidget siteKey="test" onVerify={() => {}} onExpire={onExpire} />);
+    await vi.waitFor(() => expect(window.turnstile?.render).toHaveBeenCalledTimes(1));
+
+    const options = (window.turnstile!.render as ReturnType<typeof vi.fn>).mock.calls[0]?.[1];
+    options["error-callback"]();
+    expect(onExpire).toHaveBeenCalledTimes(1);
+  });
+
+  it("fetches a fresh token when resetSignal changes, and not otherwise", async () => {
+    const { rerender } = render(<TurnstileWidget siteKey="test" onVerify={() => {}} />);
+    await vi.waitFor(() => expect(window.turnstile?.render).toHaveBeenCalledTimes(1));
+    expect(window.turnstile?.reset).not.toHaveBeenCalled();
+
+    rerender(<TurnstileWidget siteKey="test" onVerify={() => {}} resetSignal={1} />);
+    expect(window.turnstile?.reset).toHaveBeenCalledWith("widget-1");
+
+    rerender(<TurnstileWidget siteKey="test" onVerify={() => {}} resetSignal={1} />);
+    expect(window.turnstile?.reset).toHaveBeenCalledTimes(1);
+  });
+
   it("removes the widget on unmount", async () => {
     const { unmount } = render(<TurnstileWidget siteKey="test" onVerify={() => {}} />);
     await vi.waitFor(() => expect(window.turnstile?.render).toHaveBeenCalledTimes(1));

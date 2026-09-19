@@ -14,9 +14,9 @@
  * 2. **`max_tokens` defaults to 256.** An Observation does not fit in 256 tokens, so the
  *    default truncates the JSON mid-object and the failure reads as a broken model rather
  *    than a missing parameter. It is always set explicitly here.
- * 3. **`guided_json` constrains decoding.** `llama-4-scout` is on Workers AI specifically
- *    because it documents this (SPEC.md, "Layer 2"); it is what lets TheFace skip custom
- *    JSON repair code.
+ * 3. **`response_format` constrains decoding.** Mistral Small 3.1 takes the JSON Schema as
+ *    `response_format: { type: "json_schema" }` and REJECTS `guided_json` (every field comes
+ *    back missing). That constraint is what lets TheFace skip custom JSON repair code.
  * 4. **The `Ai` binding arrives as a parameter.** This module never reads
  *    `cloudflare:workers` env, so the call is testable with a stub and the Worker keeps
  *    control of its own bindings.
@@ -27,11 +27,13 @@ import { OBSERVATION_JSON_SCHEMA, ObservationSchema } from "./schema";
 import type { Observation } from "./schema";
 
 /**
- * The only Workers AI vision model that documents `guided_json`. See SPEC.md, "Layer 2":
- * the cheaper `llama-3.2-11b-vision-instruct` would save about $8 each month and cost us
- * custom JSON repair code.
+ * Benchmarked against `llama-4-scout` and `gemma-4-26b` on the same five photos: Mistral left
+ * the fewest fields "not_assessable" (2-5 of 42, against Scout's 8-11), passed the adult-face
+ * Verdict on all five where Scout failed one, and costs fewer neurons than Scout (about 53
+ * against 65 per image). Gemma 4 is cheaper still but mislabelled real photos as renders, and
+ * is a reasoning model that returns nothing unless thinking is switched off.
  */
-export const OBSERVATION_MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct" as const;
+export const OBSERVATION_MODEL = "@cf/mistralai/mistral-small-3.1-24b-instruct" as const;
 
 /**
  * Explicit, because the API default of 256 truncates an Observation.
@@ -66,7 +68,7 @@ export interface VisionRequest {
   messages: VisionMessage[];
   max_tokens: number;
   temperature: number;
-  guided_json: object;
+  response_format: { type: "json_schema"; json_schema: { name: string; schema: object } };
 }
 
 /**
@@ -99,7 +101,9 @@ export type ObservationFailure =
   /** The response was not JSON. Usually truncation: check `max_tokens`. */
   | "malformed_json"
   /** The response was JSON but not an Observation. */
-  | "schema_mismatch";
+  | "schema_mismatch"
+  /** Workers AI refused the call because the day's free neurons are spent. Resets 00:00 UTC. */
+  | "daily_limit";
 
 /** A failure to produce an Observation. The Worker turns this into a retry message; it never
  * shows a Visitor a partial Observation. */
@@ -144,7 +148,10 @@ export function buildObservationRequest(crop: string, options: ObserveOptions = 
     ],
     max_tokens: options.maxTokens ?? DEFAULT_MAX_TOKENS,
     temperature: options.temperature ?? DEFAULT_TEMPERATURE,
-    guided_json: OBSERVATION_JSON_SCHEMA,
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "observation", schema: OBSERVATION_JSON_SCHEMA },
+    },
   };
 }
 
@@ -161,8 +168,28 @@ export async function observe(
   options: ObserveOptions = {},
 ): Promise<Observation> {
   const request = buildObservationRequest(crop, options);
-  const raw = await ai.run(OBSERVATION_MODEL, request);
+  let raw: unknown;
+  try {
+    raw = await ai.run(OBSERVATION_MODEL, request);
+  } catch (error) {
+    if (isDailyLimitError(error)) {
+      throw new ObservationError("daily_limit", "The Workers AI daily free allowance is spent.", {
+        cause: error,
+      });
+    }
+    throw error;
+  }
   return parseObservation(raw, request.max_tokens);
+}
+
+/**
+ * On the Workers Free plan, going over 10,000 neurons a day makes calls fail with an error
+ * (code 4006, "you have used up your daily free allocation") rather than charging. Matched on
+ * the message because the binding surfaces it as a plain `Error`.
+ */
+export function isDailyLimitError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /\b4006\b|daily free allocation|used up your daily/i.test(message);
 }
 
 /**

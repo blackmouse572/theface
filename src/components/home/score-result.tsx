@@ -1,5 +1,30 @@
+import {
+  IconBolt,
+  IconBrush,
+  IconCrown,
+  IconDiamond,
+  IconEar,
+  IconEye,
+  IconEyeglass,
+  IconHanger,
+  IconHeartHandshake,
+  IconMask,
+  IconMoodSmile,
+  IconMoodSmileBeam,
+  IconMoodTongue,
+  IconMountain,
+  IconRuler2,
+  IconScissors,
+  IconShieldCheck,
+  IconSparkles,
+  IconSquareRotated,
+  IconTriangleInverted,
+  IconWaveSine,
+  type Icon,
+} from "@tabler/icons-react";
 import { motion } from "motion/react";
 
+import { Button } from "@/components/ui";
 import { AESTHETICS } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
 import type { Crop } from "@/lib/screening/crop.browser";
@@ -30,6 +55,28 @@ export const DIMENSION_LABELS: Partial<Record<keyof Ratings, string>> = {
   trustworthiness: "Trustworthiness",
 };
 
+export const DIMENSION_ICONS: Partial<Record<keyof Ratings, Icon>> = {
+  eyes: IconEye,
+  symmetry: IconWaveSine,
+  skin: IconSparkles,
+  proportions: IconRuler2,
+  jawline: IconTriangleInverted,
+  cheekbones: IconDiamond,
+  nose: IconMask,
+  lips: IconMoodTongue,
+  hairAndHairline: IconScissors,
+  teeth: IconMoodSmileBeam,
+  eyebrows: IconEyeglass,
+  chin: IconSquareRotated,
+  forehead: IconMountain,
+  ears: IconEar,
+  confidence: IconBolt,
+  styleAndGrooming: IconHanger,
+  approachability: IconMoodSmile,
+  mainCharacterEnergy: IconCrown,
+  trustworthiness: IconShieldCheck,
+};
+
 export interface ScoreResultViewProps {
   readonly overall: number;
   readonly ratings: Ratings;
@@ -37,6 +84,13 @@ export interface ScoreResultViewProps {
   /** The Crop this score came from, held for a possible Claim. See `claim-dialog.tsx`. */
   readonly crop: Crop | null;
   readonly onReset?: () => void;
+}
+
+export function DimensionIcon({ dimension }: { readonly dimension: keyof Ratings }) {
+  const Glyph = DIMENSION_ICONS[dimension] ?? IconBrush;
+  return (
+    <Glyph aria-hidden="true" className="text-muted-foreground size-4 shrink-0" stroke={1.75} />
+  );
 }
 
 /** The top Dimensions only — nobody shares a low Rating for one Feature. */
@@ -88,7 +142,10 @@ export function ScoreResultView({
             }}
           >
             <div className="flex items-center justify-between text-sm">
-              <span>{DIMENSION_LABELS[key as keyof Ratings] ?? key}</span>
+              <span className="flex items-center gap-2">
+                <DimensionIcon dimension={key as keyof Ratings} />
+                {DIMENSION_LABELS[key as keyof Ratings] ?? key}
+              </span>
               <span className="text-muted-foreground font-mono tabular-nums">
                 {Math.round(value)}
               </span>
@@ -106,19 +163,15 @@ export function ScoreResultView({
       </ul>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <ScoreDetailDialog overall={overall} ratings={ratings} affinities={affinities} />
+        <ScoreDetailDialog overall={overall} ratings={ratings} affinities={affinities} />
+        <div className="flex items-center gap-2">
           {onReset ? (
-            <button
-              type="button"
-              onClick={onReset}
-              className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-2"
-            >
-              Try another photo
-            </button>
+            <Button variant="outline" size="sm" onClick={onReset}>
+              Try again
+            </Button>
           ) : null}
+          <ClaimDialog overall={overall} ratings={ratings} affinities={affinities} crop={crop} />
         </div>
-        <ClaimDialog overall={overall} ratings={ratings} affinities={affinities} crop={crop} />
       </div>
     </motion.div>
   );

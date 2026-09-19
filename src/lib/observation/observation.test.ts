@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildObservationRequest,
   DEFAULT_MAX_TOKENS,
+  isDailyLimitError,
   observe,
   OBSERVATION_MODEL,
   ObservationError,
@@ -237,14 +238,14 @@ describe("the Observation prompt", () => {
  * -------------------------------------------------------------------------------------- */
 
 describe("observe", () => {
-  it("calls the model that documents guided_json", async () => {
+  it("calls the benchmarked vision model", async () => {
     const { ai, run } = stubAi({ response: JSON.stringify(validObservation()) });
 
     await observe(ai, CROP_BASE64);
 
     expect(run).toHaveBeenCalledTimes(1);
-    expect(run.mock.calls[0]?.[0]).toBe("@cf/meta/llama-4-scout-17b-16e-instruct");
-    expect(OBSERVATION_MODEL).toBe("@cf/meta/llama-4-scout-17b-16e-instruct");
+    expect(run.mock.calls[0]?.[0]).toBe("@cf/mistralai/mistral-small-3.1-24b-instruct");
+    expect(OBSERVATION_MODEL).toBe("@cf/mistralai/mistral-small-3.1-24b-instruct");
   });
 
   it("sets max_tokens explicitly, because the API default of 256 truncates an Observation", async () => {
@@ -292,14 +293,19 @@ describe("observe", () => {
     expect(parts[1]).toEqual({ type: "image_url", image_url: { url: dataUrl } });
   });
 
-  it("sends the system prompt and constrains decoding with guided_json", async () => {
+  it("sends the system prompt and constrains decoding with response_format", async () => {
     const { ai, run } = stubAi({ response: JSON.stringify(validObservation()) });
 
     await observe(ai, CROP_BASE64);
 
     const input = run.mock.calls[0]?.[1];
     expect(input?.messages[0]).toEqual({ role: "system", content: OBSERVATION_SYSTEM_PROMPT });
-    expect(input?.guided_json).toBe(OBSERVATION_JSON_SCHEMA);
+    expect(input?.response_format).toEqual({
+      type: "json_schema",
+      json_schema: { name: "observation", schema: OBSERVATION_JSON_SCHEMA },
+    });
+    // Mistral rejects `guided_json` outright, returning every field missing.
+    expect(input).not.toHaveProperty("guided_json");
   });
 
   it("returns the validated Observation", async () => {
@@ -373,12 +379,50 @@ describe("parseObservation", () => {
  * The request builder
  * -------------------------------------------------------------------------------------- */
 
+describe("the daily limit", () => {
+  it("recognises Workers AI's exhausted free allowance", () => {
+    for (const message of [
+      "4006: you have used up your daily free allocation of 10,000 neurons",
+      "AiError: 4006: ...",
+      "You have used up your daily free allocation",
+    ]) {
+      expect(isDailyLimitError(new Error(message)), message).toBe(true);
+    }
+  });
+
+  it("does not mistake other failures for it", () => {
+    for (const message of ["fetch failed", "5xx from upstream", "model returned 40060 tokens"]) {
+      expect(isDailyLimitError(new Error(message)), message).toBe(false);
+    }
+  });
+
+  it("surfaces it from observe as its own failure, not a generic error", async () => {
+    const run = vi.fn(async () => {
+      throw new Error("4006: you have used up your daily free allocation of 10,000 neurons");
+    });
+
+    await expect(observe({ run }, CROP_BASE64)).rejects.toMatchObject({
+      name: "ObservationError",
+      failure: "daily_limit",
+    });
+  });
+
+  it("lets any other binding error through untouched", async () => {
+    const boom = new Error("network down");
+    const run = vi.fn(async () => {
+      throw boom;
+    });
+
+    await expect(observe({ run }, CROP_BASE64)).rejects.toBe(boom);
+  });
+});
+
 describe("buildObservationRequest", () => {
   it("builds the same request the call sends, without needing a binding", () => {
     const request = buildObservationRequest(CROP_BASE64);
 
     expect(request.max_tokens).toBe(DEFAULT_MAX_TOKENS);
     expect(request.messages).toHaveLength(2);
-    expect(request.guided_json).toBe(OBSERVATION_JSON_SCHEMA);
+    expect(request.response_format.json_schema.schema).toBe(OBSERVATION_JSON_SCHEMA);
   });
 });

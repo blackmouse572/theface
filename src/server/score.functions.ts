@@ -13,7 +13,7 @@ import {
 } from "@/lib/jev/overall";
 import { jevQuestions } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
-import { observe } from "@/lib/observation";
+import { ObservationError, observe } from "@/lib/observation";
 import { DAILY_LIMIT, rateLimiterName } from "@/server/rate-limiter";
 import { verifyTurnstile } from "@/server/turnstile";
 
@@ -32,7 +32,7 @@ const ScoreInput = z.object({
 export type ScoreResult =
   | {
       readonly ok: false;
-      readonly reason: "turnstile" | "rate-limited" | "verdict-failed" | "error";
+      readonly reason: "turnstile" | "rate-limited" | "ai-limit" | "verdict-failed" | "error";
       /** The three Verdict probabilities, only on `verdict-failed`. Not shown to a
        *  Visitor — VERDICT_THRESHOLDS are untested placeholders, and this is what
        *  makes a false rejection diagnosable instead of a black box. See `debug.ts`. */
@@ -106,6 +106,10 @@ export const scoreCrop = createServerFn({ method: "POST" })
 
       return { ok: true, overall, ratings, affinities };
     } catch (error) {
+      if (error instanceof ObservationError && error.failure === "daily_limit") {
+        log.log("rejected", { reason: "ai-limit" });
+        return { ok: false, reason: "ai-limit" };
+      }
       log.log("error", { error: error instanceof Error ? error.message : String(error) });
       return { ok: false, reason: "error" };
     }

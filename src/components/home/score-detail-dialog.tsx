@@ -13,7 +13,7 @@ import { AESTHETICS } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
 import { cn } from "@/lib/ui";
 
-import { DIMENSION_LABELS } from "./score-result";
+import { DIMENSION_LABELS, DimensionIcon } from "./score-result";
 
 export interface ScoreDetailDialogProps {
   readonly overall: number;
@@ -27,11 +27,24 @@ export interface ScoreDetailDialogProps {
  * list on the results view, this dialog can be reopened many times in one sitting - a repeat
  * reveal is not the rare, first-time moment that earns the summary its animated fill.
  */
-function MeterRow({ label, value, color }: { label: string; value: number; color: string }) {
+function MeterRow({
+  label,
+  value,
+  color,
+  icon,
+}: {
+  label: string;
+  value: number;
+  color: string;
+  icon?: ReactNode;
+}) {
   return (
     <li className="flex flex-col gap-1">
       <div className="flex items-center justify-between text-sm">
-        <span>{label}</span>
+        <span className="flex items-center gap-2">
+          {icon}
+          {label}
+        </span>
         <span className="text-muted-foreground font-mono tabular-nums">{Math.round(value)}</span>
       </div>
       <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full" aria-hidden="true">
@@ -93,6 +106,7 @@ export function ScoreDetailDialog({
             {allRatings.map(([key, value]) => (
               <MeterRow
                 key={key}
+                icon={<DimensionIcon dimension={key} />}
                 label={DIMENSION_LABELS[key] ?? key}
                 value={value}
                 color="var(--color-chart-1)"

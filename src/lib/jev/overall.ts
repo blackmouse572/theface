@@ -313,16 +313,49 @@ export function assessableWeights(observation: Observation): DimensionWeights {
 }
 
 /**
+ * How far a Noul must sit from 0.5 to count. Jev answers "above average?" with a probability,
+ * and 0.5 is where it lands when it cannot tell (the Feature questions ask it to). Inside
+ * this band the model did not commit either way, so the Dimension is left out rather than
+ * averaged in as if it had.
+ *
+ * A Dimension that is genuinely average also reads near 0.5 and is dropped with the rest, so
+ * this favours decisive signals. Tune it against real answers.
+ */
+export const UNCERTAIN_BAND = 0.1;
+
+/**
+ * The Overall is never computed from fewer than this many weight points. Dropping
+ * uncertain Dimensions from a sparse answer could otherwise leave two or three of them
+ * deciding the whole number; below the floor the uncertain ones are kept.
+ */
+export const MIN_CONFIDENT_WEIGHT = 40;
+
+/**
+ * `weights` with every Dimension zeroed whose Noul is within {@link UNCERTAIN_BAND} of 0.5.
+ * Reads the raw probability, before the confidence boost in `ratingFromNoul`.
+ */
+export function confidentWeights(
+  answers: DimensionAnswers,
+  weights: DimensionWeights = OVERALL_WEIGHTS,
+): DimensionWeights {
+  const kept: Record<string, number> = { ...weights };
+  for (const key of [...FEATURE_KEYS, ...IMPRESSION_KEYS]) {
+    if (Math.abs(answers[key].noul - 0.5) < UNCERTAIN_BAND) kept[key] = 0;
+  }
+  return sumOf(kept) >= MIN_CONFIDENT_WEIGHT ? (kept as DimensionWeights) : weights;
+}
+
+/**
  * The Overall straight from Jev's answers, for the common path in the Worker.
  *
- * Pass the Observation that produced `answers` and an unassessed Feature is excluded rather
- * than trusted at whatever it happened to score - see {@link assessableWeights}. Omit it and
- * every Feature counts, which is only correct when the caller already knows every Feature had
- * real evidence behind it (a test's hand-built answers, for instance).
+ * A Dimension is left out when the model could not judge it: the Observation had nothing on
+ * it ({@link assessableWeights}, needs `observation`), or Jev itself was unsure
+ * ({@link confidentWeights}). What remains is renormalised, so the result stays on 0-100.
+ * Omit `observation` and only the second rule applies.
  */
 export function overallFromAnswers(answers: DimensionAnswers, observation?: Observation): Overall {
-  const weights = observation ? assessableWeights(observation) : OVERALL_WEIGHTS;
-  return computeOverall(ratingsFromAnswers(answers), weights);
+  const assessable = observation ? assessableWeights(observation) : OVERALL_WEIGHTS;
+  return computeOverall(ratingsFromAnswers(answers), confidentWeights(answers, assessable));
 }
 
 /** `apparentMinor` runs the other way: pass requires it stay BELOW its threshold. */

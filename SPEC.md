@@ -91,7 +91,7 @@ TheFace does not use the native `FaceDetector` API. It has been flag-only in Chr
 
 ### Layer 2 - Observation, in the Worker
 
-TheFace uses **`@cf/meta/llama-4-scout-17b-16e-instruct`** on Workers AI.
+TheFace uses **`@cf/mistralai/mistral-small-3.1-24b-instruct`** on Workers AI.
 
 The model emits **neutral observed facts only**. An Observation states "almond eye shape,
 medium canthal tilt, even skin tone, soft directional light from camera left, apparent age
@@ -100,9 +100,19 @@ bracket 25–34". It never states "striking eyes". See [ADR-0001](./docs/adr/000
 The Observation also reports an apparent-age bracket and whether the subject is a real
 photograph. Both feed the Verdict.
 
-llama-4-scout is the only Workers AI vision model that documents `guided_json` and
-`response_format`. The cheaper `llama-3.2-11b-vision-instruct` saves about $8 each month but
-needs custom JSON repair code. If that code fails, TheFace produces no Ratings.
+The model constrains its output with `response_format: { type: "json_schema" }`, which is
+what lets TheFace skip custom JSON repair code. Mistral rejects `guided_json`.
+
+Chosen by benchmark over `llama-4-scout` (the earlier choice) and `gemma-4-26b`, on five
+photos: Mistral left 2-5 of 42 Observation fields "not_assessable" against Scout's 8-11,
+passed the adult-face Verdict on all five where Scout failed one, and measured about 53
+neurons per image against Scout's 65. Gemma 4 measured about 21 neurons but mislabelled real
+photographs as renders, and it is a reasoning model that returns nothing unless thinking is
+switched off.
+
+The free plan allows 10,000 neurons a day (about 188 images), then calls fail until 00:00
+UTC. The Worker reports that as its own `ai-limit` outcome, so a Visitor reads "come back
+tomorrow" rather than a generic error.
 
 ### Layer 3 - Jev, one call
 
@@ -129,7 +139,7 @@ sequenceDiagram
     actor V as Visitor
     participant B as Browser
     participant W as Worker
-    participant AI as Workers AI<br/>llama-4-scout
+    participant AI as Workers AI<br/>mistral-small
     participant J as Jev<br/>/v1/systemone
     participant D as D1
 
@@ -246,6 +256,12 @@ Features hold 70 points. Rated Impressions hold 30 points. The weights sum to 10
 | Main-character energy | 5      |
 | Trustworthiness       | 3      |
 | **Impressions total** | **30** |
+
+These are the weights when every Dimension is judged. A Dimension the model could not judge
+is left out and the rest renormalised, so the Overall stays on 0-100. Two things leave one
+out: the Observation had nothing on it (`not_assessable`, `not_visible`, `obscured`), or Jev's
+answer sits within 0.1 of 0.5 (`UNCERTAIN_BAND` in `overall.ts`). If that would leave fewer
+than 40 weight points, the uncertain ones are kept instead.
 
 Three rules produced these numbers:
 
@@ -392,7 +408,7 @@ fetches them in parallel and defers those below the fold with `loading="lazy"`.
 
 | Component                                | Per request | At 100/day   | At 1,000/day |
 | ---------------------------------------- | ----------- | ------------ | ------------ |
-| Observation (llama-4-scout, 512px Crop)  | ~$0.00041   | ~$1.20/month | ~$11/month   |
+| Observation (mistral-small, 512px Crop)  | ~$0.0006     | ~$1.80/month | ~$18/month   |
 | Jev (one call, ~30 questions)            | <$0.001     | negligible   | negligible   |
 | X authentication (Contenders only, once) | $0–$0.010   | see below    | see below    |
 
@@ -431,7 +447,7 @@ It must not block a shared network.
 | Concern     | Choice                                      | Note                                           |
 | ----------- | ------------------------------------------- | ---------------------------------------------- |
 | Host        | Cloudflare Workers                          |                                                |
-| Observation | Workers AI `llama-4-scout-17b-16e-instruct` | Documents `guided_json`                        |
+| Observation | Workers AI `mistral-small-3.1-24b-instruct` | Fewest unassessed fields in benchmark          |
 | Judgment    | Jev via `@typesafe-ai/sdk`                  | Runs natively on workerd                       |
 | Leaderboard | D1                                          | Index `overall DESC` for top-N                 |
 | Tally       | D1 counter table                            | Never a raw `COUNT(*)` scan                    |

@@ -16,6 +16,7 @@ import {
   affinityFromScore,
   assessableWeights,
   computeOverall,
+  confidentWeights,
   isFeatureAssessable,
   overallFromAnswers,
   RATING_CONFIDENCE_BOOST,
@@ -237,13 +238,22 @@ describe("a known set of Noul probabilities", () => {
     trustworthiness: 0.69,
   };
 
-  it("produces the expected Overall", () => {
-    expect(overallFromAnswers(answersFrom(probabilities))).toBeCloseTo(83.828, 8);
+  it("produces the expected Overall, leaving out the answers within 0.1 of 0.5", () => {
+    // Nine of the nineteen sit inside the band (jawline .55, cheekbones .49, nose .58 ...),
+    // leaving 66 weight points: Overall = 5518.5 / 66 over the boosted, clamped Ratings.
+    expect(overallFromAnswers(answersFrom(probabilities))).toBeCloseTo(91.6363636, 6);
   });
 
   it("produces the same Overall through Ratings as through answers", () => {
     const answers = answersFrom(probabilities);
-    expect(computeOverall(ratingsFromAnswers(answers))).toBe(overallFromAnswers(answers));
+    expect(computeOverall(ratingsFromAnswers(answers), confidentWeights(answers))).toBe(
+      overallFromAnswers(answers),
+    );
+  });
+
+  it("scores every Dimension when none is left out", () => {
+    const answers = answersFrom(probabilities);
+    expect(computeOverall(ratingsFromAnswers(answers))).toBeCloseTo(83.828, 8);
   });
 
   it("reads each Noul probability as a boosted, clamped Rating", () => {
@@ -257,6 +267,53 @@ describe("a known set of Noul probabilities", () => {
   it("is unmoved by Craft Ratings alongside it", () => {
     const ratings = ratingsFromAnswers(answersFrom(probabilities));
     expect(computeOverall({ ...ratings, ...everyCraftRating(93) })).toBeCloseTo(83.828, 8);
+  });
+});
+
+describe("confidentWeights", () => {
+  const decisive = Object.fromEntries(RATED_KEYS.map((key) => [key, 0.9])) as Record<
+    RatedDimensionKey,
+    Probability
+  >;
+
+  it("keeps every weight when the model committed on every Dimension", () => {
+    expect(confidentWeights(answersFrom(decisive))).toEqual(OVERALL_WEIGHTS);
+  });
+
+  it("zeroes a Dimension answered inside the uncertain band", () => {
+    const weights = confidentWeights(answersFrom({ ...decisive, eyes: 0.5, skin: 0.55 }));
+    expect(weights.eyes).toBe(0);
+    expect(weights.skin).toBe(0);
+    expect(weights.symmetry).toBe(OVERALL_WEIGHTS.symmetry);
+  });
+
+  it("counts a decisively low answer, because low is a judgment too", () => {
+    const weights = confidentWeights(answersFrom({ ...decisive, eyes: 0.05 }));
+    expect(weights.eyes).toBe(OVERALL_WEIGHTS.eyes);
+  });
+
+  it("stops at the floor rather than let a few Dimensions decide everything", () => {
+    const mostlyUnsure = Object.fromEntries(RATED_KEYS.map((key) => [key, 0.5])) as Record<
+      RatedDimensionKey,
+      Probability
+    >;
+    const answers = answersFrom({ ...mostlyUnsure, eyes: 0.9, skin: 0.9 });
+
+    // Only eyes + skin (16 points) would survive, under the 40-point floor.
+    expect(confidentWeights(answers)).toEqual(OVERALL_WEIGHTS);
+    expect(overallFromAnswers(answers)).toBeCloseTo(
+      computeOverall(ratingsFromAnswers(answers)),
+      10,
+    );
+  });
+
+  it("drops an unsure Dimension from the Overall instead of averaging it in", () => {
+    const answers = answersFrom({ ...decisive, ears: 0.5 });
+    const withoutEars = computeOverall(ratingsFromAnswers(answers), {
+      ...OVERALL_WEIGHTS,
+      ears: 0,
+    });
+    expect(overallFromAnswers(answers)).toBeCloseTo(withoutEars, 10);
   });
 });
 
