@@ -1,4 +1,3 @@
-import "@tanstack/react-start/client-only";
 import type { FaceLandmarks68 } from "@vladmandic/face-api";
 
 import {
@@ -9,6 +8,7 @@ import {
   type CropGeometry,
   type Vec2,
 } from "./crop";
+import { assertBrowser } from "./models.browser";
 
 /**
  * The Crop - encoding, on the device.
@@ -119,6 +119,7 @@ export async function createCrop(
   landmarks: CropLandmarks,
   options: CreateCropOptions = {},
 ): Promise<Crop> {
+  assertBrowser("createCrop");
   const { longEdge = CROP_LONG_EDGE, quality = CROP_JPEG_QUALITY, padding } = options;
 
   const geometry = computeCropGeometry(faceAnchors(landmarkPositions(landmarks)), {

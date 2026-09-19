@@ -1,41 +1,41 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "theface",
-	"compatibility_date": "2026-09-18",
-	"main": "src/server.ts",
-	"observability": {
-		"enabled": true
-	},
-	"d1_databases": [
-		{
-			"binding": "theface",
-			"database_name": "theface",
-			"database_id": "4830bb20-d451-49fd-a204-2bc23a1ebe95",
-			"migrations_dir": "migrations",
-		},
-	],
-	"r2_buckets": [
-		{
-			"binding": "PORTRAITS",
-			"bucket_name": "theface-portraits"
-		}
-	],
-	"ai": {
-		"binding": "AI",
-		"remote": true
-	},
-	"durable_objects": {
-		"bindings": [
-			{
-				"name": "RATE_LIMIT",
-				"class_name": "RateLimiter"
-			}
-		],
-	},
-	"exports": {
-		"RateLimiter": {
-			"type": "durable-object",
-			"storage": "sqlite"
-		},
-	},
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "theface",
+  "compatibility_date": "2026-09-18",
+  "main": "src/server.ts",
+  "observability": {
+    "enabled": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "theface",
+      "database_id": "4830bb20-d451-49fd-a204-2bc23a1ebe95",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "PORTRAITS",
+      "bucket_name": "theface-portraits",
+    },
+  ],
+  "ai": {
+    "binding": "AI",
+    "remote": true,
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RATE_LIMIT",
+        "class_name": "RateLimiter",
+      },
+    ],
+  },
+  "exports": {
+    "RateLimiter": {
+      "type": "durable-object",
+      "storage": "sqlite",
+    },
+  },
 }

@@ -95,7 +95,9 @@ describe("seo", () => {
   });
 
   it("omits the canonical link when noindex", () => {
-    expect(seo({ origin: ORIGIN, path: "/x", noindex: true }).links).toHaveLength(0);
+    expect(seo({ origin: ORIGIN, path: "/x", noindex: true }).links).not.toContainEqual(
+      expect.objectContaining({ rel: "canonical" }),
+    );
   });
 
   it("truncates a long description everywhere it appears", () => {
@@ -122,7 +124,7 @@ describe("a results page is never indexable and never carries a face", () => {
     ).toBe(false);
   });
   it("has no canonical link", () => {
-    expect(tags.links).toHaveLength(0);
+    expect(tags.links).not.toContainEqual(expect.objectContaining({ rel: "canonical" }));
   });
   it("is the only page helper that is noindex", () => {
     for (const other of [homeSeo(ORIGIN), boardSeo({ origin: ORIGIN }), privacySeo(ORIGIN)]) {

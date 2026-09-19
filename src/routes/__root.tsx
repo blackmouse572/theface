@@ -2,6 +2,7 @@ import "../styles/globals.css";
 import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
+import { Navbar } from "@/components/ui";
 import { homeSeo, jsonLd, websiteJsonLd } from "@/lib/seo";
 
 /** Set once here so canonical URLs, JSON-LD and share cards cannot disagree. */
@@ -24,6 +25,7 @@ export const Route = createRootRoute({
       scripts: jsonLd(websiteJsonLd({ origin: SITE_ORIGIN, sameAs: SITE_PROFILES })),
     };
   },
+  component: RootComponent,
   shellComponent: RootDocument,
 });
 
@@ -42,5 +44,10 @@ function RootDocument({ children }: { children: ReactNode }) {
 }
 
 export default function RootComponent() {
-  return <Outlet />;
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+    </>
+  );
 }

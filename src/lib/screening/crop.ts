@@ -30,7 +30,7 @@
  * The result is generous on purpose. `SPEC.md`, "What gets rated", asks for Ratings on hair and
  * hairline, forehead and ears, so the Crop has to contain them; a chin-to-brow box would not.
  *
- * This file is pure arithmetic. No DOM, no canvas, no face-api, no network. `crop.client.ts`
+ * This file is pure arithmetic. No DOM, no canvas, no face-api, no network. `crop.browser.ts`
  * is the half that touches a canvas.
  */
 

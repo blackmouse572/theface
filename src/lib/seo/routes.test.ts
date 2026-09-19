@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { AESTHETICS } from "../jev/questions";
+import { AESTHETIC_LABELS } from "../aesthetics";
 import {
   buildRobotsTxt,
   buildSitemapXml,
@@ -8,7 +8,6 @@ import {
   INDEXABLE_PAGES,
   originFromRequest,
 } from "./routes";
-import { slug } from "./seo";
 
 const ORIGIN = "https://theface.example";
 
@@ -18,14 +17,14 @@ describe("INDEXABLE_PAGES", () => {
     expect(paths).toContain("/");
     expect(paths).toContain("/board");
     expect(paths).toContain("/privacy");
-    for (const aesthetic of Object.values(AESTHETICS)) {
-      expect(paths).toContain(`/board/${slug(aesthetic.name)}`);
+    for (const aesthetic of AESTHETIC_LABELS) {
+      expect(paths).toContain(`/board/${aesthetic.slug}`);
     }
   });
 
   it("has one board per Aesthetic and no more", () => {
     const boards = INDEXABLE_PAGES.filter((p) => p.path.startsWith("/board/"));
-    expect(boards).toHaveLength(Object.keys(AESTHETICS).length);
+    expect(boards).toHaveLength(AESTHETIC_LABELS.length);
   });
 
   it("holds no duplicate path", () => {

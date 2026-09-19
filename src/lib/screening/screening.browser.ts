@@ -1,4 +1,3 @@
-import "@tanstack/react-start/client-only";
 import type {
   Box,
   FaceDetection,
@@ -6,11 +5,12 @@ import type {
   TinyFaceDetectorOptions,
 } from "@vladmandic/face-api";
 
-import { loadScreeningModels, type FaceApiModule } from "./models.client";
+import { loadScreeningModels, type FaceApiModule, assertBrowser } from "./models.browser";
 import {
   DETECTOR_INPUT_SIZE,
+  DETECTOR_LOW_CONFIDENCE_THRESHOLD,
   DETECTOR_SCORE_THRESHOLD,
-  evaluateScreening,
+  evaluateDetections,
   screeningFailure,
   type ScreeningFailure,
 } from "./screening";
@@ -27,31 +27,26 @@ import {
  *
  * So: nothing here uploads, posts, beacons or logs. The only network traffic anywhere under
  * `src/lib/screening/` is the same-origin fetch of our own model weights from `/models/`
- * (`models.client.ts`). A caller may only transmit a Selfie-derived thing after
+ * (`models.browser.ts`). A caller may only transmit a Selfie-derived thing after
  * {@link runScreening} has returned `ok: true`, and even then it transmits the Crop
- * (`crop.client.ts`), never the Selfie.
+ * (`crop.browser.ts`), never the Selfie.
  *
  * The second promise this module keeps is the one about biometrics. `FaceRecognitionNet` is
- * never imported, never loaded and never called; see the long note in `models.client.ts`.
+ * never imported, never loaded and never called; see the long note in `models.browser.ts`.
  *
  * ## What runs, in what order
  *
- * `SPEC.md`, "Layer 1 - Screening, on the device", and "Why Screening and Verdict are ours to
- * build", which orders the admission layers by cost. Inside Screening the same logic applies:
+ * `SPEC.md`, "Layer 1 - Screening, on the device":
  *
  *   1. `TinyFaceDetector` over the whole Selfie - how many faces?
  *   2. The face-area fraction - is the one face big enough to read?
- *   3. `FaceLandmark68TinyNet` + `AgeGenderNet` over the aligned face - apparent age >= ~25?
+ *   3. `FaceLandmark68TinyNet` over the one face that passed both - landmarks for the Crop.
  *
- * Step 3 costs roughly as much as steps 1 and 2 together, so it runs only if they pass. That is
- * why `evaluateScreening` in `screening.ts` takes `estimateApparentAge` as a callback: the
- * ordering is a property of the pure core and is tested there, not an accident of this file.
- *
- * The detector does run twice - once to count, once inside the landmark-and-age chain. That is
- * a deliberate trade. `withAgeAndGender()` after `withFaceLandmarks()` estimates age from the
- * *aligned* face rather than the raw box, which is the accurate path, and the fluent API has no
- * way to resume from an already-computed detection. `TinyFaceDetector` is the cheap model of
- * the three; paying for it twice buys both the early exit and the better age estimate.
+ * The detector runs twice on a pass - once to count, once inside the landmark chain, because
+ * the fluent API has no way to resume from an already-computed detection - and once more, at a
+ * far more permissive threshold, on a Selfie that step 1 rejected outright. That third pass
+ * never admits anything; it only chooses which of two failure messages a Visitor sees. See
+ * `DETECTOR_LOW_CONFIDENCE_THRESHOLD` in `screening.ts`.
  *
  * Client-only, marked twice over: the `.client.ts` suffix that TanStack Start's import
  * protection denies in the server environment, and the side-effect import above.
@@ -60,7 +55,7 @@ import {
 /** What a Visitor hands us. `CONTEXT.md`, "Selfie": the image that a Visitor selects. */
 export type ScreeningInput = File | Blob | HTMLImageElement;
 
-/** A Selfie that passed all three checks. */
+/** A Selfie that passed both checks. */
 export interface ScreenedFace {
   readonly ok: true;
   /** The single detected face, in Selfie coordinates. */
@@ -71,15 +66,6 @@ export interface ScreenedFace {
   readonly alignedBox: Box;
   /** The face box area as a fraction of the Selfie's area. */
   readonly faceAreaFraction: number;
-  /**
-   * The apparent age `AgeGenderNet` estimated, in years.
-   *
-   * Do not display this and do not send it anywhere. It is an unreliable number with an error
-   * band of several years (`SPEC.md`), it is here so the value behind the decision can be
-   * logged locally while calibrating `MIN_APPARENT_AGE`, and showing it to a Visitor would turn
-   * a photo-quality message into exactly the accusation `messages.ts` exists to prevent.
-   */
-  readonly apparentAge: number;
   /**
    * The decoded Selfie, ready to hand to `createCrop`. Held in memory only; this is the last
    * point at which the full Selfie exists anywhere, and it never leaves the device.
@@ -98,11 +84,29 @@ function analyseSingleFace(
   return faceapi
     .detectSingleFace(source, options)
     .withFaceLandmarks(true) // true = FaceLandmark68TinyNet, per SPEC.md "Layer 1"
-    .withAgeAndGender()
     .run();
 }
 
-type FaceAnalysis = NonNullable<Awaited<ReturnType<typeof analyseSingleFace>>>;
+/**
+ * A second, permissive detection pass used only to choose which failure message a Visitor
+ * sees - see `DETECTOR_LOW_CONFIDENCE_THRESHOLD` in `screening.ts`. Never load-bearing: an
+ * error here falls back to the plain "no face" message rather than blocking Screening.
+ */
+async function sawSomethingFaint(
+  faceapi: FaceApiModule,
+  source: HTMLImageElement,
+): Promise<boolean> {
+  const options = new faceapi.TinyFaceDetectorOptions({
+    inputSize: DETECTOR_INPUT_SIZE,
+    scoreThreshold: DETECTOR_LOW_CONFIDENCE_THRESHOLD,
+  });
+  try {
+    const detections = await faceapi.detectAllFaces(source, options).run();
+    return detections.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 async function decodeSelfie(
   faceapi: FaceApiModule,
@@ -125,6 +129,7 @@ async function decodeSelfie(
  * mistake, not a bad Selfie.
  */
 export async function runScreening(input: ScreeningInput): Promise<ScreeningResult> {
+  assertBrowser("runScreening");
   let faceapi: FaceApiModule;
   try {
     faceapi = await loadScreeningModels();
@@ -154,37 +159,20 @@ export async function runScreening(input: ScreeningInput): Promise<ScreeningResu
     return screeningFailure("unreadable-image");
   }
 
-  // 2 and 3 live in the pure core. `takeAnalysis` exists because the landmark-and-age chain
-  // produces both the number the core needs and the landmarks the Crop needs, and reading it
-  // back through a call keeps the types honest across the callback boundary.
-  let faceAnalysis: FaceAnalysis | null = null;
-  const takeAnalysis = (): FaceAnalysis | null => faceAnalysis;
-
-  const decision = await evaluateScreening({
-    detections: detections.map((detection) => detection.box),
-    image,
-    // 3. Only reached when 1 and 2 have passed, so AgeGenderNet never sees a rejected Selfie.
-    estimateApparentAge: async () => {
-      try {
-        faceAnalysis = (await analyseSingleFace(faceapi, source, options)) ?? null;
-      } catch {
-        faceAnalysis = null;
-      }
-      return takeAnalysis()?.age ?? Number.NaN;
-    },
-  });
-
-  const face = takeAnalysis();
-
-  // A model that fell over is our problem, not an apparent-age failure. Both render the same
-  // words (`messages.ts`), but the reason a caller sees should still be the true one.
-  if (!face) {
-    if (decision.ok || decision.reason === "apparent-age-below-threshold") {
-      return screeningFailure("unreadable-image");
-    }
-    return decision;
+  if (detections.length === 0 && (await sawSomethingFaint(faceapi, source))) {
+    return screeningFailure("low-confidence-face");
   }
+
+  // 2 lives in the pure core.
+  const decision = evaluateDetections(
+    detections.map((detection) => detection.box),
+    image,
+  );
   if (!decision.ok) return decision;
+
+  // 3. Only reached once 1 and 2 have passed.
+  const face = await analyseSingleFace(faceapi, source, options).catch(() => null);
+  if (!face) return screeningFailure("unreadable-image");
 
   return {
     ok: true,
@@ -192,15 +180,14 @@ export async function runScreening(input: ScreeningInput): Promise<ScreeningResu
     landmarks: face.landmarks,
     alignedBox: face.alignedRect.box,
     faceAreaFraction: decision.faceAreaFraction,
-    apparentAge: decision.apparentAge,
     source,
   };
 }
 
 export {
   DETECTOR_INPUT_SIZE,
+  DETECTOR_LOW_CONFIDENCE_THRESHOLD,
   DETECTOR_SCORE_THRESHOLD,
-  MIN_APPARENT_AGE,
   MIN_FACE_AREA_FRACTION,
   type ScreeningFailure,
   type ScreeningFailureReason,

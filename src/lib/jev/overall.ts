@@ -20,7 +20,15 @@
  * Pure arithmetic. No I/O, no binding, no network.
  */
 
-import { AESTHETIC_KEYS, CRAFT_KEYS, FEATURE_KEYS, IMPRESSION_KEYS } from "./questions";
+import type { Observation } from "@/lib/observation";
+
+import {
+  AESTHETIC_KEYS,
+  CRAFT_KEYS,
+  FEATURE_KEYS,
+  IMPRESSION_KEYS,
+  VERDICT_THRESHOLDS,
+} from "./questions";
 import type {
   CraftKey,
   DimensionWeights,
@@ -35,6 +43,8 @@ import type {
   Ratings,
   AestheticAnswers,
   AestheticKey,
+  Verdict,
+  VerdictAnswers,
 } from "./types";
 
 // ---------------------------------------------------------------------------------------
@@ -131,13 +141,26 @@ function clamp(value: number, low: number, high: number): number {
 }
 
 /**
- * A Noul returns a probability from 0 to 1. A Rating is that probability times 100.
+ * How much `ratingFromNoul` inflates a Noul probability before it becomes a Rating.
+ *
+ * A blunt, explicit calibration knob, not a claim about the true distribution: Jev's "above
+ * average" propositions read harsher in practice than the Overall should feel, so every
+ * Feature and Impression Rating is scaled up 30%, uniformly, before clamping to 100. It never
+ * touches the Verdict - `verdictFromAnswers` reads `.noul` directly, not through this
+ * function - because inflating `oneAdultFace` or `realPhotograph` would weaken a safety check,
+ * not a score.
+ */
+export const RATING_CONFIDENCE_BOOST = 1.3;
+
+/**
+ * A Noul returns a probability from 0 to 1. A Rating is that probability times 100, boosted by
+ * {@link RATING_CONFIDENCE_BOOST} first.
  *
  * ADR-0002: this direct reading is the whole reason a Rating is a Noul and not a `Score`. A
  * `Score` would give five distinct values where a Board needs genuine spread.
  */
 export function ratingFromNoul(probability: Probability): Rating {
-  return clamp(probability, 0, 1) * 100;
+  return clamp(probability * RATING_CONFIDENCE_BOOST, 0, 1) * 100;
 }
 
 /** Every Noul answer for a rated Dimension, read as a Rating. */
@@ -194,24 +217,124 @@ export function affinitiesFromAnswers(answers: AestheticAnswers): Record<Aesthet
  * Craft Ratings may be passed. They change nothing, because every Craft weight is zero
  * (ADR-0007).
  *
+ * `weights` defaults to {@link OVERALL_WEIGHTS} but may be a table with some entries zeroed
+ * out - see {@link assessableWeights} - in which case the divisor is that table's own total,
+ * not the fixed 100, so excluding a Dimension still leaves the result on 0–100.
+ *
  * The result is NOT rounded. A Board ranks on the raw 0–100, so the spread is worth keeping;
  * the Tally rounds to one of its 101 counters at its own edge.
  */
-export function computeOverall(ratings: OverallInput): Overall {
-  if (OVERALL_WEIGHT_TOTAL <= 0) return 0;
+export function computeOverall(
+  ratings: OverallInput,
+  weights: DimensionWeights = OVERALL_WEIGHTS,
+): Overall {
+  const weightTotal = sumOf(weights);
+  if (weightTotal <= 0) return 0;
 
   let weighted = 0;
-  for (const key of FEATURE_KEYS) weighted += ratings[key] * FEATURE_WEIGHTS[key];
-  for (const key of IMPRESSION_KEYS) weighted += ratings[key] * IMPRESSION_WEIGHTS[key];
+  for (const key of FEATURE_KEYS) weighted += ratings[key] * weights[key];
+  for (const key of IMPRESSION_KEYS) weighted += ratings[key] * weights[key];
 
-  // ADR-0007. Every term in this loop is multiplied by zero. It is written out rather than
-  // dropped so that a Craft weight can never start counting silently.
-  for (const key of CRAFT_KEYS) weighted += (ratings[key] ?? 0) * CRAFT_WEIGHTS[key];
+  // ADR-0007. Every term in this loop is multiplied by zero, absent an override. It is
+  // written out rather than dropped so that a Craft weight can never start counting silently.
+  for (const key of CRAFT_KEYS) weighted += (ratings[key] ?? 0) * weights[key];
 
-  return clamp(weighted / OVERALL_WEIGHT_TOTAL, 0, 100);
+  return clamp(weighted / weightTotal, 0, 100);
 }
 
-/** The Overall straight from Jev's answers, for the common path in the Worker. */
-export function overallFromAnswers(answers: DimensionAnswers): Overall {
-  return computeOverall(ratingsFromAnswers(answers));
+/**
+ * The Observation field(s) behind each Feature, and the value each reports when it found
+ * nothing to say. A Feature counts as assessable if AT LEAST ONE of its fields cleared that
+ * bar - most Features are one field, a few (eyes, skin) are covered from two angles.
+ */
+const FEATURE_EVIDENCE: Readonly<
+  Record<FeatureKey, readonly { readonly field: keyof Observation; readonly empty: string }[]>
+> = {
+  eyes: [
+    { field: "eyeShape", empty: "not_visible" },
+    { field: "canthalTilt", empty: "not_assessable" },
+  ],
+  eyebrows: [
+    { field: "browShape", empty: "not_visible" },
+    { field: "browThickness", empty: "not_visible" },
+  ],
+  nose: [{ field: "noseShape", empty: "not_assessable" }],
+  lips: [{ field: "lipFullness", empty: "not_visible" }],
+  jawline: [{ field: "jawAngle", empty: "not_assessable" }],
+  chin: [{ field: "chinShape", empty: "not_assessable" }],
+  cheekbones: [{ field: "cheekboneProminence", empty: "not_assessable" }],
+  forehead: [{ field: "foreheadHeight", empty: "obscured" }],
+  skin: [
+    { field: "skinToneEvenness", empty: "not_assessable" },
+    { field: "skinTexture", empty: "not_assessable" },
+  ],
+  teeth: [
+    { field: "teethVisibility", empty: "not_visible" },
+    { field: "teethAlignment", empty: "not_assessable" },
+  ],
+  hairAndHairline: [
+    { field: "hairLength", empty: "obscured" },
+    { field: "hairStyle", empty: "obscured" },
+    { field: "hairlinePosition", empty: "obscured" },
+    { field: "hairDensity", empty: "obscured" },
+  ],
+  ears: [
+    { field: "earVisibility", empty: "not_visible" },
+    { field: "earProtrusion", empty: "not_visible" },
+  ],
+  symmetry: [{ field: "facialSymmetry", empty: "not_assessable" }],
+  proportions: [{ field: "facialThirds", empty: "not_assessable" }],
+};
+
+/**
+ * Whether the Observation had anything to say about a Feature at all.
+ *
+ * A false negative here (calling an assessed Feature unassessable) only costs a little
+ * weight; a false positive (trusting a Rating with nothing behind it) is the bug this
+ * function exists to catch. See `questions.ts`, `UNCERTAIN_WHEN_UNDESCRIBED`, for the other
+ * half of this fix - this is the code-side backstop, in case Jev still answers low anyway.
+ */
+export function isFeatureAssessable(observation: Observation, key: FeatureKey): boolean {
+  return FEATURE_EVIDENCE[key].some(({ field, empty }) => observation[field] !== empty);
+}
+
+/**
+ * {@link OVERALL_WEIGHTS} with every unassessable Feature's weight zeroed, so
+ * {@link computeOverall} renormalises over only the Features the Observation could actually
+ * judge. An Observation is optional everywhere this is used - omitting it keeps the original,
+ * unfiltered weights, which is what every test that predates this function still exercises.
+ */
+export function assessableWeights(observation: Observation): DimensionWeights {
+  const weights: Record<string, number> = { ...OVERALL_WEIGHTS };
+  for (const key of FEATURE_KEYS) {
+    if (!isFeatureAssessable(observation, key)) weights[key] = 0;
+  }
+  return weights as DimensionWeights;
+}
+
+/**
+ * The Overall straight from Jev's answers, for the common path in the Worker.
+ *
+ * Pass the Observation that produced `answers` and an unassessed Feature is excluded rather
+ * than trusted at whatever it happened to score - see {@link assessableWeights}. Omit it and
+ * every Feature counts, which is only correct when the caller already knows every Feature had
+ * real evidence behind it (a test's hand-built answers, for instance).
+ */
+export function overallFromAnswers(answers: DimensionAnswers, observation?: Observation): Overall {
+  const weights = observation ? assessableWeights(observation) : OVERALL_WEIGHTS;
+  return computeOverall(ratingsFromAnswers(answers), weights);
+}
+
+/** `apparentMinor` runs the other way: pass requires it stay BELOW its threshold. */
+export function verdictFromAnswers(answers: VerdictAnswers): Verdict {
+  const oneAdultFace = answers.oneAdultFace.noul;
+  const realPhotograph = answers.realPhotograph.noul;
+  const apparentMinor = answers.apparentMinor.noul;
+
+  const passed =
+    oneAdultFace >= VERDICT_THRESHOLDS.minOneAdultFace &&
+    realPhotograph >= VERDICT_THRESHOLDS.minRealPhotograph &&
+    apparentMinor <= VERDICT_THRESHOLDS.maxApparentMinor;
+
+  return { oneAdultFace, realPhotograph, apparentMinor, passed };
 }

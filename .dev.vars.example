@@ -10,3 +10,5 @@ TWITTER_CLIENT_SECRET=
 # Turnstile server half. Cloudflare's always-passes test secret is the default,
 # so the flow works before you create a real widget. Replace before deploying.
 TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
+RATE_LIMIT_SALT=

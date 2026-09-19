@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   computeCropGeometry,
@@ -15,11 +15,10 @@ import {
 } from "./crop";
 import { SCREENING_MESSAGES, SCREENING_REASSURANCE, screeningMessage } from "./messages";
 import {
-  evaluateApparentAge,
+  DETECTOR_LOW_CONFIDENCE_THRESHOLD,
+  DETECTOR_SCORE_THRESHOLD,
   evaluateDetections,
-  evaluateScreening,
   faceAreaFraction,
-  MIN_APPARENT_AGE,
   MIN_FACE_AREA_FRACTION,
   screeningFailure,
   type BoxLike,
@@ -33,16 +32,16 @@ import {
  * is `{ box: { x, y, width, height } }` and landmarks are `{ positions: Point[] }`, which is the
  * shape the real library hands back, and the shape both pure modules consume.
  *
- * The client halves (`screening.client.ts`, `crop.client.ts`) are deliberately not imported.
+ * The client halves (`screening.browser.ts`, `crop.browser.ts`) are deliberately not imported.
  * They need a DOM, a WebGL context and 600 KB of weights, and the rules worth protecting - the
  * thresholds, the ordering, the framing maths and the copy - all live on this side of the seam.
  */
 
 const ALL_REASONS: readonly ScreeningFailureReason[] = [
   "no-face",
+  "low-confidence-face",
   "multiple-faces",
   "face-too-small",
-  "apparent-age-below-threshold",
   "unreadable-image",
   "models-unavailable",
 ];
@@ -99,7 +98,7 @@ function mockLandmarks(shape: FaceShape = {}) {
   return { positions };
 }
 
-/** Where a source pixel lands in the encoded Crop, per the transform in `crop.client.ts`. */
+/** Where a source pixel lands in the encoded Crop, per the transform in `crop.browser.ts`. */
 function project(geometry: CropGeometry, point: Vec2): Vec2 {
   const dx = point.x - geometry.center.x;
   const dy = point.y - geometry.center.y;
@@ -112,18 +111,17 @@ function project(geometry: CropGeometry, point: Vec2): Vec2 {
 }
 
 describe("thresholds", () => {
-  it("keeps the age threshold far above 18", () => {
-    // SPEC.md: "The threshold is approximately 25, not 18. TFJS age estimation has an error band
-    // of several years." Lowering this towards 18 is the mistake the spec exists to prevent.
-    expect(MIN_APPARENT_AGE).toBeGreaterThanOrEqual(25);
-    expect(MIN_APPARENT_AGE - 18).toBeGreaterThanOrEqual(5);
-  });
-
   it("keeps the face-area threshold a lenient fraction", () => {
     expect(MIN_FACE_AREA_FRACTION).toBeGreaterThan(0);
     // Above ~25% would reject ordinary arm's-length selfies, which SPEC.md forbids in effect:
     // a false reject must read as a photo-quality problem, so it must also be rare.
     expect(MIN_FACE_AREA_FRACTION).toBeLessThan(0.25);
+  });
+
+  it("keeps the low-confidence probe strictly below the real threshold", () => {
+    // Otherwise it could never find anything the real pass had already missed.
+    expect(DETECTOR_LOW_CONFIDENCE_THRESHOLD).toBeLessThan(DETECTOR_SCORE_THRESHOLD);
+    expect(DETECTOR_LOW_CONFIDENCE_THRESHOLD).toBeGreaterThan(0);
   });
 });
 
@@ -192,62 +190,6 @@ describe("evaluateDetections", () => {
   });
 });
 
-describe("evaluateApparentAge", () => {
-  it("rejects just below the threshold and accepts at it", () => {
-    expect(evaluateApparentAge(MIN_APPARENT_AGE - 0.1)).toMatchObject({
-      ok: false,
-      reason: "apparent-age-below-threshold",
-    });
-    expect(evaluateApparentAge(MIN_APPARENT_AGE)).toMatchObject({ ok: true });
-    expect(evaluateApparentAge(MIN_APPARENT_AGE + 20)).toMatchObject({ ok: true });
-  });
-
-  it("fails closed on a number the model could not produce", () => {
-    // `NaN < 25` is false, so a naive comparison would let an unusable estimate through.
-    for (const age of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, -1]) {
-      expect(evaluateApparentAge(age)).toMatchObject({ ok: false });
-    }
-  });
-});
-
-describe("evaluateScreening", () => {
-  const image = { width: 1000, height: 1000 };
-  const goodBox = boxCovering(0.2, 1000, 1000);
-
-  it("never runs the age model when a cheaper check already failed", async () => {
-    // SPEC.md orders the admission layers by cost. This is that ordering, inside Screening.
-    const estimateApparentAge = vi.fn(async () => 40);
-
-    for (const detections of [[], [goodBox, goodBox], [boxCovering(0.001, 1000, 1000)]]) {
-      const result = await evaluateScreening({ detections, image, estimateApparentAge });
-      expect(result.ok).toBe(false);
-    }
-
-    expect(estimateApparentAge).not.toHaveBeenCalled();
-  });
-
-  it("runs the age model exactly once when the cheap checks pass", async () => {
-    const estimateApparentAge = vi.fn(async () => 31.4);
-    const result = await evaluateScreening({ detections: [goodBox], image, estimateApparentAge });
-
-    expect(estimateApparentAge).toHaveBeenCalledTimes(1);
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.apparentAge).toBeCloseTo(31.4, 10);
-    expect(result.faceAreaFraction).toBeCloseTo(0.2, 10);
-    expect(result.box).toBe(goodBox);
-  });
-
-  it("fails on apparent age after the cheap checks pass", async () => {
-    const result = await evaluateScreening({
-      detections: [goodBox],
-      image,
-      estimateApparentAge: async () => MIN_APPARENT_AGE - 1,
-    });
-    expect(result).toMatchObject({ ok: false, reason: "apparent-age-below-threshold" });
-  });
-});
-
 describe("the result union", () => {
   it("discriminates on ok, and every failure carries a reason and its copy", () => {
     for (const reason of ALL_REASONS) {
@@ -260,11 +202,10 @@ describe("the result union", () => {
     }
   });
 
-  it("gives a pass no reason to branch on", async () => {
-    const result = await evaluateScreening({
-      detections: [boxCovering(0.2, 1000, 1000)],
-      image: { width: 1000, height: 1000 },
-      estimateApparentAge: async () => 30,
+  it("gives a pass no reason to branch on", () => {
+    const result = evaluateDetections([boxCovering(0.2, 1000, 1000)], {
+      width: 1000,
+      height: 1000,
     });
     expect(result.ok).toBe(true);
     expect(result).not.toHaveProperty("reason");
@@ -281,8 +222,8 @@ describe("failure copy", () => {
   });
 
   it("never accuses anyone of anything", () => {
-    // SPEC.md: "The message must never accuse the Visitor." The age threshold is set high
-    // enough that it rejects adults, so no string may mention age, youth or proof of identity.
+    // SPEC.md: "The message must never accuse the Visitor." No string may mention age, youth
+    // or proof of identity, even though Screening no longer checks any of them itself.
     const banned =
       /\b(minor|minors|underage|young|younger|youth|child|children|kid|kids|teen|teenager|age|aged|ages|birthday|adult|adults|id|identity|verify|verified|prove|proof|suspect|suspicious)\b/i;
     const judgement = /\byou (look|seem|appear|are)\b/i;
@@ -299,14 +240,6 @@ describe("failure copy", () => {
       const { body } = SCREENING_MESSAGES[reason];
       expect(body.toLowerCase()).toMatch(/photo|device|frame/);
     }
-  });
-
-  it("makes the apparent-age failure indistinguishable from a decode failure", () => {
-    // Shared by reference on purpose: nobody may work backwards from the copy to
-    // "the site thinks I look like a minor". See the module comment in messages.ts.
-    expect(SCREENING_MESSAGES["apparent-age-below-threshold"]).toBe(
-      SCREENING_MESSAGES["unreadable-image"],
-    );
   });
 
   it("has a line that states the privacy promise Screening keeps", () => {

@@ -42,6 +42,31 @@ function proposition(question: string, yes: string, no: string): NoulQuestion {
   return noul(`${FROM_THE_OBSERVATION} ${question}`, { true: yes, false: no });
 }
 
+/**
+ * Tells Jev to answer near one half, not a confident no, when the Observation has nothing to
+ * say about a Feature. Placed before the question, not after, so the instructions still end
+ * in "?" (`questions.test.ts` requires that of every Noul).
+ *
+ * A Noul returns one probability, so "ordinary" and "no evidence" have to stay two different
+ * instructions rather than two clauses of one `false` criterion. Folding them together - the
+ * original shape of every Feature's `false` text - reads to the model as "no evidence also
+ * means no", which pulled every under-described Feature towards 0 instead of towards the
+ * midpoint `ratingFromNoul` was written to expect. See `overall.test.ts`, "an unassessed
+ * Feature".
+ */
+const UNCERTAIN_WHEN_UNDESCRIBED =
+  "if the Observation does not describe this clearly enough to judge either way, treat that " +
+  "as genuine uncertainty rather than as a confident no, weighing it near one half, then " +
+  "answer:";
+
+/** A Feature proposition. Same shape as {@link proposition}, plus {@link UNCERTAIN_WHEN_UNDESCRIBED}. */
+function featureProposition(question: string, yes: string, no: string): NoulQuestion {
+  return noul(`${FROM_THE_OBSERVATION} ${UNCERTAIN_WHEN_UNDESCRIBED} ${question}`, {
+    true: yes,
+    false: no,
+  });
+}
+
 // ---------------------------------------------------------------------------------------
 // Verdict
 // ---------------------------------------------------------------------------------------
@@ -117,78 +142,79 @@ export const FEATURE_KEYS = [
  * Every proposition is "above average", so the fourteen probabilities are comparable and
  * the weighted combination in `./overall.ts` is meaningful. A Feature that the Observation
  * does not describe -> teeth behind closed lips, ears behind hair -> should land near 0.5,
- * which each `false` description says in its own words.
+ * which {@link UNCERTAIN_WHEN_UNDESCRIBED} says explicitly. `overall.ts` also excludes it
+ * from the weighted mean outright, as a second line of defence against this same case.
  */
 export const featureQuestions = {
-  eyes: proposition(
+  eyes: featureProposition(
     "would a typical viewer say this person's eyes are above average?",
     "Yes -> a typical viewer would call the eyes a strong feature of this face: well defined, well placed, and well matched to each other.",
-    "No -> a typical viewer would call the eyes ordinary for this face, or the Observation says too little about them to decide.",
+    "No -> a typical viewer would call the eyes ordinary for this face.",
   ),
-  eyebrows: proposition(
+  eyebrows: featureProposition(
     "would a typical viewer say this person's eyebrows are above average?",
     "Yes -> a typical viewer would say the brows suit the face: even, well shaped, and set at a flattering height.",
-    "No -> a typical viewer would call the brows ordinary for this face, or the Observation says too little about them to decide.",
+    "No -> a typical viewer would call the brows ordinary for this face.",
   ),
-  nose: proposition(
+  nose: featureProposition(
     "would a typical viewer say this person's nose is above average?",
     "Yes -> a typical viewer would say the nose suits the face in width, length and profile.",
-    "No -> a typical viewer would call the nose ordinary for this face, or the Observation says too little about it to decide.",
+    "No -> a typical viewer would call the nose ordinary for this face.",
   ),
-  lips: proposition(
+  lips: featureProposition(
     "would a typical viewer say this person's lips are above average?",
     "Yes -> a typical viewer would say the lips are a strong feature: good fullness for the face, an even balance between upper and lower, and a clear outline.",
-    "No -> a typical viewer would call the lips ordinary for this face, or the Observation says too little about them to decide.",
+    "No -> a typical viewer would call the lips ordinary for this face.",
   ),
-  jawline: proposition(
+  jawline: featureProposition(
     "would a typical viewer say this person's jawline is above average?",
     "Yes -> a typical viewer would say the jawline is a strong feature: clearly defined along its length and well shaped at the angle.",
-    "No -> a typical viewer would call the jawline ordinary for this face, or the Observation says too little about it to decide.",
+    "No -> a typical viewer would call the jawline ordinary for this face.",
   ),
-  chin: proposition(
+  chin: featureProposition(
     "would a typical viewer say this person's chin is above average?",
     "Yes -> a typical viewer would say the chin suits the face in projection and width, and sits well under the lower lip.",
-    "No -> a typical viewer would call the chin ordinary for this face, or the Observation says too little about it to decide.",
+    "No -> a typical viewer would call the chin ordinary for this face.",
   ),
-  cheekbones: proposition(
+  cheekbones: featureProposition(
     "would a typical viewer say this person's cheekbones are above average?",
     "Yes -> a typical viewer would say the cheekbones are a strong feature: clearly read, well placed, and even on both sides.",
-    "No -> a typical viewer would call the cheekbones ordinary for this face, or the Observation says too little about them to decide.",
+    "No -> a typical viewer would call the cheekbones ordinary for this face.",
   ),
-  forehead: proposition(
+  forehead: featureProposition(
     "would a typical viewer say this person's forehead is above average?",
     "Yes -> a typical viewer would say the forehead is well proportioned to the rest of the face in height and width.",
-    "No -> a typical viewer would call the forehead ordinary for this face, or the Observation says too little about it to decide.",
+    "No -> a typical viewer would call the forehead ordinary for this face.",
   ),
-  skin: proposition(
+  skin: featureProposition(
     "would a typical viewer say this person's skin is above average?",
     "Yes -> a typical viewer would say the skin is a strong feature: even in tone and texture, and healthy.",
-    "No -> a typical viewer would call the skin ordinary for this face, or the Observation says too little about it to decide.",
+    "No -> a typical viewer would call the skin ordinary for this face.",
   ),
-  teeth: proposition(
+  teeth: featureProposition(
     "would a typical viewer say this person's teeth are above average?",
     "Yes -> the Observation describes visible teeth that are even, well aligned and clean in colour.",
-    "No -> a typical viewer would call the teeth ordinary, or the teeth are not visible in this photograph and there is nothing to judge.",
+    "No -> a typical viewer would call the teeth ordinary.",
   ),
-  hairAndHairline: proposition(
+  hairAndHairline: featureProposition(
     "would a typical viewer say this person's hair and hairline are above average?",
     "Yes -> a typical viewer would say the hair is a strong feature: healthy in condition and density, with a hairline that frames the face well.",
-    "No -> a typical viewer would call the hair and hairline ordinary for this face, or the Observation says too little about them to decide.",
+    "No -> a typical viewer would call the hair and hairline ordinary for this face.",
   ),
-  ears: proposition(
+  ears: featureProposition(
     "would a typical viewer say this person's ears are above average?",
     "Yes -> the Observation describes visible ears that are well proportioned and sit close and even against the head.",
-    "No -> a typical viewer would call the ears ordinary, or the ears are not visible in this photograph and there is nothing to judge.",
+    "No -> a typical viewer would call the ears ordinary.",
   ),
-  symmetry: proposition(
+  symmetry: featureProposition(
     "would a typical viewer say this face is more symmetric than average?",
     "Yes -> the left and right sides match closely in the placement and shape of the eyes, the brows, the mouth and the jaw.",
-    "No -> the two sides differ enough for a typical viewer to notice, or the Observation says too little about the match to decide.",
+    "No -> the two sides differ enough for a typical viewer to notice.",
   ),
-  proportions: proposition(
+  proportions: featureProposition(
     "would a typical viewer say this face is better proportioned than average?",
     "Yes -> the vertical thirds and the horizontal spacing of the features sit in a balance that a typical viewer would call pleasing.",
-    "No -> a typical viewer would call the proportions ordinary for a face, or the Observation says too little about them to decide.",
+    "No -> a typical viewer would call the proportions ordinary for a face.",
   ),
 } satisfies Questions;
 

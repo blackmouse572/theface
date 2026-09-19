@@ -7,8 +7,8 @@
  * it in the other is the classic way to get a "blocked by robots.txt but indexed" warning.
  */
 
-import { AESTHETICS } from "../jev/questions";
-import { absoluteUrl, slug } from "./seo";
+import { AESTHETIC_LABELS } from "../aesthetics";
+import { absoluteUrl } from "./seo";
 
 export interface SitemapEntry {
   readonly path: string;
@@ -21,8 +21,8 @@ export interface SitemapEntry {
 export const INDEXABLE_PAGES: readonly SitemapEntry[] = [
   { path: "/", priority: 1, changefreq: "weekly" },
   { path: "/board", priority: 0.9, changefreq: "hourly" },
-  ...Object.values(AESTHETICS).map((aesthetic) => ({
-    path: `/board/${slug(aesthetic.name)}`,
+  ...AESTHETIC_LABELS.map((aesthetic) => ({
+    path: `/board/${aesthetic.slug}`,
     priority: 0.7,
     changefreq: "hourly" as const,
   })),

@@ -12,15 +12,11 @@
  * > quality problem, for example "we could not read this photo clearly, try another". The
  * > message must never accuse the Visitor.
  *
- * Screening is a conservative pre-filter with a deliberately high age threshold (see
- * `MIN_APPARENT_AGE` in `screening.ts`). It will reject adults. A Visitor who is rejected must
- * read a sentence about the photograph, never a sentence about themselves. No string here may
- * tell anyone that they look young, that they look underage, or that they were disbelieved.
- *
- * `COULD_NOT_READ` is therefore shared by reference between the age failure and a genuine
- * decode failure. The two are indistinguishable to the Visitor by design: nobody can work
- * backwards from the copy to "the site thinks I look like a minor". `screening.test.ts`
- * asserts that identity, so do not split them into two separate literals.
+ * A Visitor who is rejected must read a sentence about the photograph, never a sentence about
+ * themselves. No string here may tell anyone that they look young, that they look underage, or
+ * that they were disbelieved. Screening no longer gates on apparent age at all - a minor is
+ * caught one layer up, by the Verdict - so that concern no longer applies to any reason below,
+ * but the rule that governs the copy still does.
  */
 
 /**
@@ -28,18 +24,20 @@
  *
  * The reason lives here, beside the copy, because the copy is the only thing a Visitor is ever
  * shown. Anything that renders a failure must call {@link screeningMessage}; never write copy
- * for a reason at the call site, and never branch on `"apparent-age-below-threshold"` to say
- * something different from what this file says.
+ * for a reason at the call site.
  */
 export type ScreeningFailureReason =
-  /** `TinyFaceDetector` found no face at all. */
+  /** `TinyFaceDetector` found no face at all, not even at a permissive threshold. */
   | "no-face"
+  /**
+   * `TinyFaceDetector` found nothing at the real threshold, but something at a far more
+   * permissive one. See `DETECTOR_LOW_CONFIDENCE_THRESHOLD` in `screening.ts`.
+   */
+  | "low-confidence-face"
   /** `TinyFaceDetector` found two or more faces. Screening rates one face or none. */
   | "multiple-faces"
   /** The face covers too little of the frame to read. See `MIN_FACE_AREA_FRACTION`. */
   | "face-too-small"
-  /** `AgeGenderNet` estimated an apparent age below `MIN_APPARENT_AGE`. */
-  | "apparent-age-below-threshold"
   /** The file would not decode, or a model threw while reading it. */
   | "unreadable-image"
   /** The model weights could not be fetched from `/models/`. Not the Visitor's fault at all. */
@@ -52,25 +50,18 @@ export interface ScreeningMessage {
   readonly body: string;
 }
 
-/**
- * The generic "that photo did not read" message.
- *
- * Shared, by reference, between the apparent-age failure and a decode failure. See the module
- * comment above before changing this.
- */
-const COULD_NOT_READ: ScreeningMessage = {
-  title: "We could not read that photo",
-  body:
-    "We could not read this photo clearly. Try another one - good light on your face, " +
-    "no heavy filters, and nothing covering it.",
-};
-
 export const SCREENING_MESSAGES: Readonly<Record<ScreeningFailureReason, ScreeningMessage>> = {
   "no-face": {
     title: "No face in that one",
     body:
       "We could not find a face in this photo. Try another one - camera at eye level, " +
       "your whole face in the frame.",
+  },
+  "low-confidence-face": {
+    title: "We could not read that clearly",
+    body:
+      "This photo may have a face in it, but we could not read it clearly enough. Try more " +
+      "even light and face the camera directly.",
   },
   "multiple-faces": {
     title: "More than one face",
@@ -82,8 +73,12 @@ export const SCREENING_MESSAGES: Readonly<Record<ScreeningFailureReason, Screeni
       "The face in this photo is too small for us to read. Try one taken closer up, or crop " +
       "in before you choose it.",
   },
-  "apparent-age-below-threshold": COULD_NOT_READ,
-  "unreadable-image": COULD_NOT_READ,
+  "unreadable-image": {
+    title: "We could not read that photo",
+    body:
+      "We could not read this photo clearly. Try another one - good light on your face, " +
+      "no heavy filters, and nothing covering it.",
+  },
   "models-unavailable": {
     title: "That is on us",
     body:

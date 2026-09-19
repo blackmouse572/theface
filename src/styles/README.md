@@ -6,7 +6,8 @@ else in the app should declare a raw hex value or a raw pixel radius.
 The visual language is [oa-design](https://github.com/OpenLabs-so/oa-design)
 (MIT, Copyright (c) 2026 Voprex Labs). The palette and the radius base come from
 that project's `skills/oa-design/_root.css`. No value here comes from
-`OpenLabs-so/openanalytics`, which is AGPL-3.0.
+`OpenLabs-so/openanalytics`, which is AGPL-3.0, except `components/ui/dialog.tsx`,
+adapted from that repo's own `dialog.tsx` by explicit user decision.
 
 ## What `@theme inline` does
 
@@ -85,6 +86,18 @@ Because `color-mix()` carries the whole neutral system, an unlayered
 `rgba()`. A browser without `color-mix()` drops those declarations outright,
 and the result would not be a slightly wrong grey - it would be no borders at
 all, everywhere.
+
+## Corner shape
+
+Every `border-radius` in the app renders with continuous-curvature corners
+(a superellipse, not a circular arc) - the oa-design "squircle" look. This is
+one declaration, `corner-shape: squircle`, on `*`/`::before`/`::after` in
+`@layer base`, not a bespoke radius or a `shape()` clip-path: it rides on
+whichever radius a class already sets, so the `--radius` scale stays the only
+place a corner size is chosen. Browsers that do not know `corner-shape` drop
+the line and keep the plain circular arc - no fallback rule needed. Full
+circles (`rounded-full`) look identical either way, since there is no
+straight edge for the curve to round.
 
 ## Elevation
 

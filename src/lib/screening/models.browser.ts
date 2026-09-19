@@ -1,4 +1,3 @@
-import "@tanstack/react-start/client-only";
 import type * as FaceApi from "@vladmandic/face-api";
 
 /**
@@ -38,7 +37,7 @@ import type * as FaceApi from "@vladmandic/face-api";
  * A descriptor is a 128-float vector that matches one person across unrelated photographs. It
  * is the thing that turns a face image into an identifier and pulls the project squarely into
  * BIPA, CUBI and GDPR Article 9 (`SPEC.md`, "Open legal and vendor risks"). Screening needs
- * none of it: a count, a size and an apparent age, and landmarks for framing.
+ * none of it: a count, a size, and landmarks for framing.
  *
  * Concretely: never add `faceRecognitionNet` to {@link loadScreeningModels}, never call
  * `.withFaceDescriptor()` / `.withFaceDescriptors()`, never construct a `FaceMatcher`, and
@@ -68,26 +67,33 @@ export const MODEL_URL = "/models";
  * Fetch them from the face-api weights directory
  * (https://github.com/vladmandic/face-api/tree/master/model). Deliberately absent:
  * `face_recognition_model-*`, `ssd_mobilenetv1_model-*`, `face_landmark_68_model-*` (the full,
- * non-tiny landmark net) and `face_expression_model-*`. Screening uses none of them, and the
- * first of those is banned outright.
+ * non-tiny landmark net), `face_expression_model-*`, and `age_gender_model-*` - Screening no
+ * longer runs an apparent-age check (a minor is caught server-side, by the Verdict, instead),
+ * so nothing here needs it. Screening uses none of them, and the first is banned outright.
  */
 export const SCREENING_MODEL_FILES = [
   "tiny_face_detector_model-weights_manifest.json",
   "tiny_face_detector_model.bin",
   "face_landmark_68_tiny_model-weights_manifest.json",
   "face_landmark_68_tiny_model.bin",
-  "age_gender_model-weights_manifest.json",
-  "age_gender_model.bin",
 ] as const;
 
 let faceApiPromise: Promise<FaceApiModule> | null = null;
 let screeningModelsPromise: Promise<FaceApiModule> | null = null;
 
-function assertBrowser(): void {
+/**
+ * These modules were once named `*.client.ts` and carried the
+ * `@tanstack/react-start/client-only` marker. Both were removed: Import Protection denies
+ * any reference to a `.client.` file from the server graph, including a DYNAMIC import
+ * inside an event handler, which is exactly how Screening is loaded. The upload card must
+ * render on the server, so it cannot sit behind `<ClientOnly>`.
+ *
+ * This runtime guard replaces that static one. It fires the moment anything tries to run
+ * Screening on a server, which is the case the marker actually protected against.
+ */
+export function assertBrowser(what = "Screening"): void {
   if (typeof window === "undefined" || typeof document === "undefined") {
-    throw new Error(
-      "Screening is client-only: face-api and TFJS must never run in the SSR bundle.",
-    );
+    throw new Error(`${what} is browser-only: face-api and TFJS must never run in the SSR bundle.`);
   }
 }
 
@@ -104,10 +110,10 @@ export function loadFaceApi(): Promise<FaceApiModule> {
 }
 
 /**
- * Imports face-api and loads exactly the three Screening models, once.
+ * Imports face-api and loads exactly the two Screening models, once.
  *
- * `TinyFaceDetector` performs Screening, `FaceLandmark68TinyNet` aligns the Crop, and
- * `AgeGenderNet` estimates apparent age - `SPEC.md`, "Layer 1". Nothing else.
+ * `TinyFaceDetector` performs Screening, `FaceLandmark68TinyNet` aligns the Crop -
+ * `SPEC.md`, "Layer 1". Nothing else.
  *
  * Concurrent callers share one in-flight promise. A failure clears the cache so the next
  * attempt retries rather than replaying the rejection forever; Screening reports it as
@@ -121,7 +127,6 @@ export function loadScreeningModels(): Promise<FaceApiModule> {
     await Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
       faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
-      faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL),
       // Never faceRecognitionNet. See "FaceRecognitionNet is forbidden" above.
     ]);
     return faceapi;
@@ -133,13 +138,9 @@ export function loadScreeningModels(): Promise<FaceApiModule> {
   return screeningModelsPromise;
 }
 
-/** Whether all three Screening models are already in memory. */
+/** Whether both Screening models are already in memory. */
 export function areScreeningModelsLoaded(faceapi: FaceApiModule): boolean {
-  return (
-    faceapi.nets.tinyFaceDetector.isLoaded &&
-    faceapi.nets.faceLandmark68TinyNet.isLoaded &&
-    faceapi.nets.ageGenderNet.isLoaded
-  );
+  return faceapi.nets.tinyFaceDetector.isLoaded && faceapi.nets.faceLandmark68TinyNet.isLoaded;
 }
 
 /**
@@ -158,5 +159,17 @@ export async function disposeScreeningModels(): Promise<void> {
 
   faceapi.nets.tinyFaceDetector.dispose(false);
   faceapi.nets.faceLandmark68TinyNet.dispose(false);
-  faceapi.nets.ageGenderNet.dispose(false);
+}
+
+/**
+ * The TFJS backend actually running detection - "webgl", "wasm", "cpu", or undefined if
+ * nothing has initialised yet. Pure fact, not a log: the caller decides whether to log it.
+ * A "no-face" result on "cpu" (the slow, no-GPU fallback) is worth telling apart from one
+ * on "webgl" - a degraded backend can silently return near-zero-confidence noise, which
+ * reads identically to a genuine miss unless this is captured alongside it.
+ */
+export function activeBackend(faceapi: FaceApiModule): string | undefined {
+  // face-api's types omit getBackend from the re-exported tf namespace; it exists at runtime.
+  const tf = faceapi.tf as unknown as { getBackend: () => string | undefined };
+  return tf.getBackend();
 }

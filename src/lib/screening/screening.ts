@@ -2,23 +2,20 @@
  * Screening - the pure decision core.
  *
  * `SPEC.md`, "Layer 1 - Screening, on the device" and `CONTEXT.md`, "Screening": the checks
- * that run on a Visitor's own device, before any transmission. Screening confirms three
- * conditions, in this order:
+ * that run on a Visitor's own device, before any transmission. Screening confirms two
+ * conditions:
  *
  *   1. The Selfie contains exactly one face.      (`TinyFaceDetector`)
  *   2. The face is large enough to read.          (a fraction of the frame)
- *   3. The subject does not appear to be a minor. (`AgeGenderNet`)
  *
  * This file holds the thresholds and the decision. It holds no model, no canvas and no DOM. It
- * is deliberately separate from `screening.client.ts` so that the rules can be read and tested
+ * is deliberately separate from `screening.browser.ts` so that the rules can be read and tested
  * without a WebGL context or 600 KB of weights, and so that a route that only wants to render a
  * failure never drags TensorFlow.js anywhere near a bundle.
  *
- * The order is not cosmetic. `estimateApparentAge` is a callback, not a value, precisely so
- * that `AgeGenderNet` never runs on a Selfie that has already failed a cheaper check -
- * `SPEC.md`, "Why Screening and Verdict are ours to build" orders the three admission layers by
- * cost, and this is that ordering inside the cheapest one. `screening.test.ts` asserts the
- * callback is not invoked when the detections fail.
+ * There used to be a third check here, an apparent-age pre-filter via `AgeGenderNet`. It was
+ * removed: a minor is still caught, just one layer up, by the Verdict's `apparentMinor` check
+ * against the server-side Observation (`jev/overall.ts`). That remains the only age gate.
  */
 
 import { screeningMessage, type ScreeningFailureReason, type ScreeningMessage } from "./messages";
@@ -48,25 +45,6 @@ export type { ScreeningFailureReason, ScreeningMessage };
  */
 export const MIN_FACE_AREA_FRACTION = 0.04;
 
-/**
- * The minimum apparent age, in years, that `AgeGenderNet` must estimate.
- *
- * **This is 25, not 18, and that is the whole point.** `SPEC.md`:
- *
- * > The age check is a conservative pre-filter, not a precise check. The threshold is
- * > approximately 25, not 18. TFJS age estimation has an error band of several years. A
- * > threshold of 18 would therefore fail in the critical range, because the model can estimate
- * > a 16-year-old as 19. A high threshold keeps an ambiguous Selfie on the device.
- *
- * The consequence is that Screening rejects adults, routinely. That is priced in: the failure
- * copy describes a photo-quality problem and never the person (`messages.ts`), and two further
- * layers - the Observation and the Verdict - catch what this one misses.
- *
- * `SPEC.md`, "Constants to calibrate after launch", settles this against "The observed false-
- * reject rate". Lower it only with data, and never below the low twenties.
- */
-export const MIN_APPARENT_AGE = 25;
-
 /** `TinyFaceDetector` input size. 416 is the library default and is ample for selfie framing. */
 export const DETECTOR_INPUT_SIZE = 416;
 
@@ -75,6 +53,16 @@ export const DETECTOR_INPUT_SIZE = 416;
  * wallpaper and clothing, which would read to a Visitor as "more than one face".
  */
 export const DETECTOR_SCORE_THRESHOLD = 0.5;
+
+/**
+ * A second, far more permissive `TinyFaceDetector` pass, run only after the real pass at
+ * {@link DETECTOR_SCORE_THRESHOLD} finds nothing at all. It never admits a Selfie - it only
+ * decides which of two failure messages a Visitor sees: a confident "no face here" versus
+ * "something faint was there", which points a Visitor at a different fix (more even light,
+ * face the camera) than a genuinely empty frame does. Untested placeholder value; calibrate
+ * against the observed split between the two messages, same as the other thresholds here.
+ */
+export const DETECTOR_LOW_CONFIDENCE_THRESHOLD = 0.1;
 
 /** The parts of a `FaceDetection.box` this module needs. Structural, so a test can fake it. */
 export interface BoxLike {
@@ -96,24 +84,9 @@ export interface ScreeningFailure {
   readonly message: ScreeningMessage;
 }
 
-/** The outcome of the two cheap checks: exactly one face, and it is big enough. */
+/** What Screening's two checks decide. `screening.browser.ts` widens a pass with face-api objects. */
 export type DetectionOutcome =
   | { readonly ok: true; readonly box: BoxLike; readonly faceAreaFraction: number }
-  | ScreeningFailure;
-
-/** The outcome of the apparent-age pre-filter. */
-export type ApparentAgeOutcome =
-  | { readonly ok: true; readonly apparentAge: number }
-  | ScreeningFailure;
-
-/** What the pure core decides. `screening.client.ts` widens the pass with face-api objects. */
-export type ScreeningDecision =
-  | {
-      readonly ok: true;
-      readonly box: BoxLike;
-      readonly faceAreaFraction: number;
-      readonly apparentAge: number;
-    }
   | ScreeningFailure;
 
 /** Build a failure, with its copy already attached so no call site has to invent any. */
@@ -138,7 +111,7 @@ export function faceAreaFraction(box: BoxLike, image: ImageDimensions): number {
 }
 
 /**
- * Checks 1 and 2: exactly one face, large enough to read.
+ * Screening's two checks: exactly one face, large enough to read.
  *
  * Zero faces and two-or-more faces are distinct failures because they are distinct problems
  * for the Visitor to fix, and neither reason is about the person.
@@ -158,50 +131,4 @@ export function evaluateDetections(
   if (fraction < minFaceAreaFraction) return screeningFailure("face-too-small");
 
   return { ok: true, box, faceAreaFraction: fraction };
-}
-
-/**
- * Check 3: the conservative apparent-age pre-filter.
- *
- * Written as `!(age >= threshold)` rather than `age < threshold` on purpose: a `NaN` age - a
- * model that ran but produced nothing usable - must fail closed, and `NaN < 25` is `false`.
- */
-export function evaluateApparentAge(
-  apparentAge: number,
-  minApparentAge: number = MIN_APPARENT_AGE,
-): ApparentAgeOutcome {
-  if (!(Number.isFinite(apparentAge) && apparentAge >= minApparentAge)) {
-    return screeningFailure("apparent-age-below-threshold");
-  }
-  return { ok: true, apparentAge };
-}
-
-export interface ScreeningEvaluation {
-  /** One entry per face `TinyFaceDetector` found, in any order. */
-  readonly detections: readonly BoxLike[];
-  /** The natural dimensions of the Selfie the detector ran against. */
-  readonly image: ImageDimensions;
-  /**
-   * Runs `AgeGenderNet`. Called at most once, and only after checks 1 and 2 have passed, so
-   * that the age model never touches a Selfie that is already rejected.
-   */
-  readonly estimateApparentAge: () => Promise<number>;
-  readonly minFaceAreaFraction?: number;
-  readonly minApparentAge?: number;
-}
-
-/** Runs the three Screening checks in cost order and returns the first failure, or a pass. */
-export async function evaluateScreening(input: ScreeningEvaluation): Promise<ScreeningDecision> {
-  const detected = evaluateDetections(input.detections, input.image, input.minFaceAreaFraction);
-  if (!detected.ok) return detected;
-
-  const aged = evaluateApparentAge(await input.estimateApparentAge(), input.minApparentAge);
-  if (!aged.ok) return aged;
-
-  return {
-    ok: true,
-    box: detected.box,
-    faceAreaFraction: detected.faceAreaFraction,
-    apparentAge: aged.apparentAge,
-  };
 }
