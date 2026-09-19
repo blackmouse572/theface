@@ -2,8 +2,10 @@ import { motion } from "motion/react";
 
 import { AESTHETICS } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
+import type { Crop } from "@/lib/screening/crop.browser";
 import { CHART, FADE_IN, POP, stagger, useReducedMotion } from "@/lib/ui";
 
+import { ClaimDialog } from "./claim-dialog";
 import { ScoreDetailDialog } from "./score-detail-dialog";
 
 export const DIMENSION_LABELS: Partial<Record<keyof Ratings, string>> = {
@@ -32,11 +34,19 @@ export interface ScoreResultViewProps {
   readonly overall: number;
   readonly ratings: Ratings;
   readonly affinities: Record<AestheticKey, number>;
+  /** The Crop this score came from, held for a possible Claim. See `claim-dialog.tsx`. */
+  readonly crop: Crop | null;
   readonly onReset?: () => void;
 }
 
 /** The top Dimensions only — nobody shares a low Rating for one Feature. */
-export function ScoreResultView({ overall, ratings, affinities, onReset }: ScoreResultViewProps) {
+export function ScoreResultView({
+  overall,
+  ratings,
+  affinities,
+  crop,
+  onReset,
+}: ScoreResultViewProps) {
   const reduced = useReducedMotion();
 
   const topRatings = Object.entries(ratings)
@@ -95,17 +105,20 @@ export function ScoreResultView({ overall, ratings, affinities, onReset }: Score
         ))}
       </ul>
 
-      <div className="mt-4 flex items-center gap-4">
-        <ScoreDetailDialog overall={overall} ratings={ratings} affinities={affinities} />
-        {onReset ? (
-          <button
-            type="button"
-            onClick={onReset}
-            className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-2"
-          >
-            Try another photo
-          </button>
-        ) : null}
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <ScoreDetailDialog overall={overall} ratings={ratings} affinities={affinities} />
+          {onReset ? (
+            <button
+              type="button"
+              onClick={onReset}
+              className="text-muted-foreground hover:text-foreground text-sm underline underline-offset-2"
+            >
+              Try another photo
+            </button>
+          ) : null}
+        </div>
+        <ClaimDialog overall={overall} ratings={ratings} affinities={affinities} crop={crop} />
       </div>
     </motion.div>
   );

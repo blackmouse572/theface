@@ -85,6 +85,9 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
   const [failure, setFailure] = useState<{ title: string; body: string } | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [score, setScore] = useState<Extract<ScoreResult, { ok: true }> | null>(null);
+  // Held for a possible Claim once scoring passes. `onCrop` is a fire-and-forget
+  // notification; this is what actually keeps the Crop alive between scoring and Claim.
+  const [crop, setCrop] = useState<Crop | null>(null);
   const busy = stage !== "idle";
 
   // An object URL is a document-lifetime handle; not revoking it leaks the Selfie's
@@ -106,6 +109,7 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
         setFile(candidate);
         setFailure(null);
         setScore(null);
+        setCrop(null);
       }
     },
     [busy],
@@ -115,6 +119,7 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
     setFile(null);
     setScore(null);
     setFailure(null);
+    setCrop(null);
   }, []);
 
   /**
@@ -165,18 +170,18 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
       // An ImageBitmap holds GPU-side memory and must be closed, or the Selfie's pixels
       // stay resident for the life of the tab.
       const bitmap = await createImageBitmap(file);
-      let crop: Crop;
+      let producedCrop: Crop;
       try {
-        crop = await log.time("crop", () => createCrop(bitmap, result.landmarks));
-        log.log("crop: done", { width: crop.width, height: crop.height });
-        onCrop?.(crop);
+        producedCrop = await log.time("crop", () => createCrop(bitmap, result.landmarks));
+        log.log("crop: done", { width: producedCrop.width, height: producedCrop.height });
+        onCrop?.(producedCrop);
       } finally {
         bitmap.close();
       }
 
       setStage("observing");
       const scored = await log.time("score", () =>
-        scoreCrop({ data: { crop: crop.dataUrl, turnstileToken } }),
+        scoreCrop({ data: { crop: producedCrop.dataUrl, turnstileToken } }),
       );
 
       if (!scored.ok) {
@@ -188,6 +193,7 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
 
       log.log("score: done", { overall: Math.round(scored.overall) });
       setScore(scored);
+      setCrop(producedCrop);
       setStage("idle");
     } catch (error) {
       log.log("failed", { error: error instanceof Error ? error.message : String(error) });
@@ -279,6 +285,7 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
             overall={score.overall}
             ratings={score.ratings}
             affinities={score.affinities}
+            crop={crop}
             onReset={reset}
           />
         ) : failure ? (
