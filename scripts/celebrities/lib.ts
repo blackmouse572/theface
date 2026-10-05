@@ -65,6 +65,18 @@ export function stripHtml(html: string): string {
 }
 
 /**
+ * A Commons Artist field sometimes repeats the licence and a link after the name ("By Gage
+ * Skidmore, CC BY-SA 3.0, https://…"). The credit already shows both, so keep the name only.
+ * Commas that are part of the name or place ("from Peoria, AZ") are kept.
+ */
+export function cleanAuthor(author: string): string {
+  return author
+    .replace(/^by\s+/i, "")
+    .replace(/,\s*(?:cc\b|public domain|https?:).*$/i, "")
+    .trim();
+}
+
+/**
  * The face square in pixels. Without a hand-set box: the full width from the top of a
  * portrait image, or the centred square of a landscape one. A box that would run off the
  * image is shrunk to fit.
@@ -135,7 +147,7 @@ export function parseImageInfo(page: CommonsPage): { url: string; credit: Credit
   return {
     url: info.thumburl ?? info.url,
     credit: {
-      author: text("Artist") || "Unknown author",
+      author: cleanAuthor(text("Artist")) || "Unknown author",
       licence,
       licenceUrl: text("LicenseUrl") || null,
       sourceUrl: info.descriptionurl,

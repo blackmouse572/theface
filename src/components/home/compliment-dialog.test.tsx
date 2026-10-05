@@ -62,10 +62,35 @@ describe("ComplimentDialog", () => {
       "src",
       "/celebrities/anne-hathaway.webp",
     );
-    expect(
-      screen.getByRole("link", { name: "Jane Doe · CC BY-SA 4.0 · Wikimedia Commons" }),
-    ).toHaveAttribute("href", "https://commons.wikimedia.org/wiki/File:Example.jpg");
+    expect(screen.getByRole("link", { name: "Jane Doe · Wikimedia Commons" })).toHaveAttribute(
+      "href",
+      "https://commons.wikimedia.org/wiki/File:Example.jpg",
+    );
     expect(screen.getByRole("button", { name: "Thanks, I know 😎" })).toBeInTheDocument();
+  });
+
+  it("links the licence and says the photo was cropped, as CC BY and BY-SA require", () => {
+    render(<ComplimentDialog compliment={credited} open onOpenChange={() => {}} />);
+
+    expect(screen.getByRole("link", { name: "CC BY-SA 4.0" })).toHaveAttribute(
+      "href",
+      "https://creativecommons.org/licenses/by-sa/4.0",
+    );
+    expect(screen.getByText(/cropped/)).toBeInTheDocument();
+  });
+
+  it("shows a licence without a link when Commons gave none", () => {
+    const publicDomain: Compliment = {
+      ...credited,
+      celebrity: {
+        ...credited.celebrity,
+        credit: { ...credited.celebrity.credit!, licence: "Public domain", licenceUrl: null },
+      },
+    };
+    render(<ComplimentDialog compliment={publicDomain} open onOpenChange={() => {}} />);
+
+    expect(screen.getByText(/Public domain/)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Public domain" })).toBeNull();
   });
 
   it("falls back to an initials badge when the photo fails to load", () => {

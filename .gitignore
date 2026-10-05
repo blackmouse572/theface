@@ -24,8 +24,6 @@ vite.config.*.timestamp-*
 worker-configuration.d.ts
 
 # Secrets and env
-.env
-.env.*
 !.env.example
 
 # Test / coverage
@@ -42,7 +40,6 @@ pnpm-debug.log*
 bun-debug.log*
 
 # Editors
-.vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 .idea/
@@ -63,3 +60,4 @@ Thumbs.db
 # Never committed: only the Observations and the shipped Commons photos are.
 seed/celebrities/originals/
 seed/celebrities/crops/
+config.bat

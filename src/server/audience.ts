@@ -10,6 +10,19 @@ import { AUDIENCES, type Audience } from "@/lib/celebrities/schema";
 export type { Audience } from "@/lib/celebrities/schema";
 
 /**
+ * The request's country: Cloudflare's `cf-ipcountry` header, or `request.cf.country` when the
+ * header is missing (it depends on the zone's IP Geolocation setting). Never stored or logged.
+ */
+export function countryOf(
+  header: string | undefined,
+  cf: { readonly country?: unknown } | undefined,
+): string | undefined {
+  const fromHeader = header?.trim();
+  if (fromHeader) return fromHeader;
+  return typeof cf?.country === "string" ? cf.country : undefined;
+}
+
+/**
  * @param country   The `cf-ipcountry` header: an ISO 3166 code, or Cloudflare's "XX"/"T1".
  * @param override  `AUDIENCE_OVERRIDE`, for local testing only, because `vite dev` sends no
  *                  `cf-ipcountry`. Wins when it names a real Audience.

@@ -102,6 +102,25 @@ describe("parseImageInfo", () => {
     expect(() => parseImageInfo(nonFree)).toThrow(/not CC0, public domain, CC BY or CC BY-SA/);
   });
 
+  it("trims an Artist that carries its own licence and link", () => {
+    const messy = structuredClone(page);
+    messy.imageinfo![0]!.extmetadata!["Artist"] = {
+      value:
+        "By Gage Skidmore, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=50365084",
+    };
+    expect(parseImageInfo(messy).credit.author).toBe("Gage Skidmore");
+  });
+
+  it("keeps an Artist whose commas belong to a place name", () => {
+    const placed = structuredClone(page);
+    placed.imageinfo![0]!.extmetadata!["Artist"] = {
+      value: "Gage Skidmore from Peoria, AZ, United States of America",
+    };
+    expect(parseImageInfo(placed).credit.author).toBe(
+      "Gage Skidmore from Peoria, AZ, United States of America",
+    );
+  });
+
   it("credits an unknown author rather than leaving the credit empty", () => {
     const anonymous = structuredClone(page);
     delete anonymous.imageinfo![0]!.extmetadata!["Artist"];
