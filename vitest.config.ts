@@ -12,7 +12,7 @@ export default defineConfig({
     // test instead opts in per-file with a docblock pragma as its first line:
     //   // @vitest-environment jsdom
     setupFiles: ["./src/test-setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.ts"],
   },
   resolve: {
     alias: { "@": new URL("./src", import.meta.url).pathname },

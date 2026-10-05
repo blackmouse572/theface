@@ -58,3 +58,8 @@ Thumbs.db
 /tmp/
 *.local.*
 /test-faces/
+
+# Celebrity seeding: full-size and owner-supplied photos, and the crops observed by hand.
+# Never committed: only the Observations and the shipped Commons photos are.
+seed/celebrities/originals/
+seed/celebrities/crops/
