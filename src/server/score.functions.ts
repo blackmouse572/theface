@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
+import { getRequest, getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { TypeSafeClient } from "@typesafe-ai/sdk";
 import { env } from "cloudflare:workers";
 import { z } from "zod";
@@ -16,7 +16,7 @@ import {
 import { jevQuestions } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
 import { ObservationError, observe } from "@/lib/observation";
-import { audienceFromRequest } from "@/server/audience";
+import { audienceFromRequest, countryOf } from "@/server/audience";
 import { DAILY_LIMIT, rateLimiterName } from "@/server/rate-limiter";
 import { verifyTurnstile } from "@/server/turnstile";
 
@@ -67,7 +67,9 @@ function complimentFor(overall: number): Compliment | null {
       "AUDIENCE_OVERRIDE" in env && typeof env.AUDIENCE_OVERRIDE === "string"
         ? env.AUDIENCE_OVERRIDE
         : undefined;
-    const audience = audienceFromRequest(getRequestHeader("cf-ipcountry"), override);
+    // On Workers the incoming Request carries `cf`; the header alone depends on a zone setting.
+    const { cf } = getRequest() as Request & { cf?: { country?: unknown } };
+    const audience = audienceFromRequest(countryOf(getRequestHeader("cf-ipcountry"), cf), override);
     return pickCompliment(overall, audience, loadRoster());
   } catch (error) {
     log.log("compliment: failed", {

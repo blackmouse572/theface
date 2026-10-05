@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { audienceFromRequest } from "./audience";
+import { audienceFromRequest, countryOf } from "./audience";
 
 describe("audienceFromRequest", () => {
   it.each(["VN", "vn", " VN "])(
@@ -27,5 +27,21 @@ describe("audienceFromRequest", () => {
   it("ignores an empty or unknown override", () => {
     expect(audienceFromRequest("VN", "")).toBe("vn");
     expect(audienceFromRequest("US", "fr")).toBe("global");
+  });
+});
+
+describe("countryOf", () => {
+  it("prefers the cf-ipcountry header", () => {
+    expect(countryOf("VN", { country: "US" })).toBe("VN");
+  });
+
+  it("falls back to request.cf.country when the header is missing or empty", () => {
+    expect(countryOf(undefined, { country: "VN" })).toBe("VN");
+    expect(countryOf("", { country: "VN" })).toBe("VN");
+  });
+
+  it("gives nothing when neither is present", () => {
+    expect(countryOf(undefined, undefined)).toBeUndefined();
+    expect(countryOf(undefined, { country: 42 })).toBeUndefined();
   });
 });

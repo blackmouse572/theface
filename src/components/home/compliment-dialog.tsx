@@ -22,8 +22,12 @@ import { cn } from "@/lib/ui";
 export const AUTO_OPEN_DELAY_MS = 900;
 
 const STRINGS = {
-  en: { thanks: "Thanks, I know 😎", photo: "Photo", reopen: "Show the compliment again" },
-  vi: { thanks: "Biết rồi mà 😎", photo: "Ảnh", reopen: "Xem lại lời khen" },
+  en: {
+    thanks: "Thanks, I know 😎",
+    photo: "Photo (cropped)",
+    reopen: "Show the compliment again",
+  },
+  vi: { thanks: "Biết rồi mà 😎", photo: "Ảnh (đã cắt)", reopen: "Xem lại lời khen" },
 } as const satisfies Record<ComplimentLang, Record<string, string>>;
 
 const TIER_ICONS: Record<ComplimentTier, Icon> = {
@@ -135,7 +139,7 @@ export function ComplimentDialog({ compliment, open, onOpenChange }: ComplimentD
             size="lg"
           />
           {celebrity.credit ? (
-            <p className="text-muted-foreground max-w-[36ch] text-xs">
+            <p className="text-muted-foreground max-w-[36ch] text-xs [overflow-wrap:anywhere]">
               {strings.photo}:{" "}
               <a
                 href={celebrity.credit.sourceUrl}
@@ -143,8 +147,21 @@ export function ComplimentDialog({ compliment, open, onOpenChange }: ComplimentD
                 rel="noreferrer"
                 className="hover:text-foreground underline underline-offset-2"
               >
-                {celebrity.credit.author} · {celebrity.credit.licence} · Wikimedia Commons
+                {celebrity.credit.author} · Wikimedia Commons
               </a>
+              {" · "}
+              {celebrity.credit.licenceUrl ? (
+                <a
+                  href={celebrity.credit.licenceUrl}
+                  target="_blank"
+                  rel="noreferrer license"
+                  className="hover:text-foreground underline underline-offset-2"
+                >
+                  {celebrity.credit.licence}
+                </a>
+              ) : (
+                celebrity.credit.licence
+              )}
             </p>
           ) : null}
           <DialogTitle className="mt-2 flex flex-col items-center gap-2 text-xl text-balance">

@@ -25,7 +25,7 @@ import { motion } from "motion/react";
 
 import { Button } from "@/components/ui";
 import type { Compliment } from "@/lib/celebrities/compliment";
-import { displayRating } from "@/lib/jev/display";
+import { displayOverall, displayRating } from "@/lib/jev/display";
 import { AESTHETICS } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
 import type { Crop } from "@/lib/screening/crop.browser";
@@ -123,9 +123,7 @@ export function ScoreResultView({
       className="mt-5"
     >
       <div className="flex items-baseline gap-3">
-        <span className="font-mono text-5xl tabular-nums">
-          {Math.round(displayRating(overall))}
-        </span>
+        <span className="font-mono text-5xl tabular-nums">{displayOverall(overall)}</span>
         <span className="text-muted-foreground text-sm">out of 100</span>
       </div>
 

@@ -19,3 +19,14 @@ export function displayRating(raw: number): number {
   if (raw >= 100) return 100;
   return 100 * (raw / 100) ** DISPLAY_EXPONENT;
 }
+
+/**
+ * The Overall as a Visitor sees it, as a whole number.
+ *
+ * A Claim stores `Math.round(raw)` on the Board, so every screen curves that same integer.
+ * Curving the unrounded raw instead would let the results page and the Board disagree by a
+ * point for the same score (raw 59.6: 81 against 82).
+ */
+export function displayOverall(raw: number): number {
+  return Math.round(displayRating(Math.round(raw)));
+}

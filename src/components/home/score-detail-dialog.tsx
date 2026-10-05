@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { displayRating } from "@/lib/jev/display";
+import { displayOverall, displayRating } from "@/lib/jev/display";
 import { AESTHETICS } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
 import { cn } from "@/lib/ui";
@@ -98,8 +98,8 @@ export function ScoreDetailDialog({
         <DialogHeader>
           <DialogTitle>Score detail</DialogTitle>
           <DialogDescription>
-            {Math.round(displayRating(overall))} out of 100 — every Feature, Impression and
-            Aesthetic behind it.
+            {displayOverall(overall)} out of 100 — every Feature, Impression and Aesthetic behind
+            it.
           </DialogDescription>
         </DialogHeader>
         <DialogPanel className="overflow-y-auto">

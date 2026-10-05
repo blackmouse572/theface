@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
 import { BreakdownRow, Card, CardHeader } from "@/components/ui";
-import { displayRating } from "@/lib/jev/display";
+import { displayOverall } from "@/lib/jev/display";
 import { cn, FADE_IN, POP, stagger, useReducedMotion } from "@/lib/ui";
 
 export interface BoardRow {
@@ -90,7 +90,7 @@ export function BoardCard({ rows, className }: BoardCardProps) {
                         </span>
                       </>
                     }
-                    value={Math.round(displayRating(row.overall))}
+                    value={displayOverall(row.overall)}
                   />
                 </a>
               </motion.li>
