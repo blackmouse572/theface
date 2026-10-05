@@ -116,6 +116,26 @@ _Avoid_: row, record, submission, profile
 One ranked list. There is a Board for the Overall and a Board for each Aesthetic.
 _Avoid_: leaderboard (for a single list), table, ranking, chart
 
+### Celebrities
+
+**Celebrity**:
+A public figure on the Roster. A Celebrity has a seeded Overall that is never shown to anyone.
+_Avoid_: celeb, star, idol
+
+**Roster**:
+The list of Celebrities that a Compliment can name.
+_Avoid_: dataset, list, seed data
+
+**Compliment**:
+The joke line that compares a Visitor's Overall with one Celebrity. A Compliment never says
+that a Visitor looks like anyone, and never ranks a Visitor below anyone.
+_Avoid_: match, lookalike, comparison, joke
+
+**Audience**:
+Which Celebrities a Compliment may name: `global` or `vn`. It comes from the country of the
+request, never from the face.
+_Avoid_: region, locale, market
+
 ### Borrowed terms
 
 These three belong to the Jev API, not to TheFace. They appear here because this document
