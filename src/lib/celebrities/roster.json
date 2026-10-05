@@ -1,1 +1,507 @@
-[]
+[
+  {
+    "slug": "ana-de-armas",
+    "name": "Ana de Armas",
+    "audience": "global",
+    "overall": 90.13,
+    "photo": "/celebrities/ana-de-armas.webp",
+    "credit": {
+      "author": "Jay Dixit",
+      "licence": "CC BY-SA 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ana_de_Armas_at_the_2024_Toronto_International_Film_Festival_05_(better_crop).jpg"
+    }
+  },
+  {
+    "slug": "anne-hathaway",
+    "name": "Anne Hathaway",
+    "audience": "global",
+    "overall": 75.52,
+    "photo": "/celebrities/anne-hathaway.webp",
+    "credit": {
+      "author": "Jay Dixit",
+      "licence": "CC BY-SA 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Anne_Hathaway_at_The_Apprentice_in_NYC_03_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "beyonce",
+    "name": "Beyoncé",
+    "audience": "global",
+    "overall": 68.6,
+    "photo": "/celebrities/beyonce.webp",
+    "credit": {
+      "author": "Sassy",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Beyonc%C3%A9_at_The_Lion_King_European_Premiere_2019.png"
+    }
+  },
+  {
+    "slug": "brad-pitt",
+    "name": "Brad Pitt",
+    "audience": "global",
+    "overall": 55.43,
+    "photo": "/celebrities/brad-pitt.webp",
+    "credit": {
+      "author": "Toglenn",
+      "licence": "CC BY-SA 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Brad_Pitt_2019_by_Glenn_Francis.jpg"
+    }
+  },
+  {
+    "slug": "cha-eun-woo",
+    "name": "Cha Eun-woo",
+    "audience": "global",
+    "overall": 62.53,
+    "photo": "/celebrities/cha-eun-woo.webp",
+    "credit": {
+      "author": "K-POPIT 케이팝잇",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cha_Eun-woo,_March_31,_2025.png"
+    }
+  },
+  {
+    "slug": "chi-phien",
+    "name": "Chị Phiến",
+    "audience": "vn",
+    "overall": 57.88,
+    "photo": "/celebrities/chi-phien.webp",
+    "credit": {
+      "author": "Galaxy Studio",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ch%E1%BB%8B_Phi%E1%BA%BFn.png"
+    }
+  },
+  {
+    "slug": "chris-hemsworth",
+    "name": "Chris Hemsworth",
+    "audience": "global",
+    "overall": 62.3,
+    "photo": "/celebrities/chris-hemsworth.webp",
+    "credit": {
+      "author": "Gage Skidmore",
+      "licence": "CC BY-SA 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Chris_Hemsworth_by_Gage_Skidmore_2_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "co-phuong-hang",
+    "name": "Cô Phương Hằng",
+    "audience": "vn",
+    "overall": 58.86,
+    "photo": "/celebrities/co-phuong-hang.webp",
+    "credit": {
+      "author": "Sài Gòn Channel",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20181013_Nguy%E1%BB%85n_Ph%C6%B0%C6%A1ng_H%E1%BA%B1ng_at_Talkshow_(cropped).png"
+    }
+  },
+  {
+    "slug": "cristiano-ronaldo",
+    "name": "Cristiano Ronaldo",
+    "audience": "global",
+    "overall": 75.43,
+    "photo": "/celebrities/cristiano-ronaldo.webp",
+    "credit": {
+      "author": "Анна Нэсси",
+      "licence": "CC BY-SA 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cristiano_Ronaldo_2018.jpg"
+    }
+  },
+  {
+    "slug": "deepika-padukone",
+    "name": "Deepika Padukone",
+    "audience": "global",
+    "overall": 77.98,
+    "photo": "/celebrities/deepika-padukone.webp",
+    "credit": {
+      "author": "Narendra Modi",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Deepika_Padukone_2025_(1).png"
+    }
+  },
+  {
+    "slug": "do-mixi",
+    "name": "Độ Mixi",
+    "audience": "vn",
+    "overall": 53.13,
+    "photo": "/celebrities/do-mixi.webp",
+    "credit": {
+      "author": "Trà đá Vỉa Hè",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20190411_%C4%90%E1%BB%99_Mixi.jpg"
+    }
+  },
+  {
+    "slug": "duong-gio-tai",
+    "name": "Dương Gió Tai",
+    "audience": "vn",
+    "overall": 47.21,
+    "photo": null,
+    "credit": null
+  },
+  {
+    "slug": "emma-watson",
+    "name": "Emma Watson",
+    "audience": "global",
+    "overall": 58.35,
+    "photo": "/celebrities/emma-watson.webp",
+    "credit": {
+      "author": "David Shankbone",
+      "licence": "CC BY 2.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Emma_Watson_2012.jpg"
+    }
+  },
+  {
+    "slug": "gal-gadot",
+    "name": "Gal Gadot",
+    "audience": "global",
+    "overall": 82.72,
+    "photo": "/celebrities/gal-gadot.webp",
+    "credit": {
+      "author": "By Gage Skidmore, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=50365084",
+      "licence": "CC BY-SA 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gal_Gadot_cropped_lighting_corrected.jpg"
+    }
+  },
+  {
+    "slug": "ha-moi",
+    "name": "Hà Môi",
+    "audience": "vn",
+    "overall": 74.06,
+    "photo": null,
+    "credit": null
+  },
+  {
+    "slug": "henry-cavill",
+    "name": "Henry Cavill",
+    "audience": "global",
+    "overall": 64.79,
+    "photo": "/celebrities/henry-cavill.webp",
+    "credit": {
+      "author": "Gage Skidmore from Peoria, AZ, United States of America",
+      "licence": "CC BY-SA 2.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Henry_Cavill_(48417913146)_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "hieuthuhai",
+    "name": "HIEUTHUHAI",
+    "audience": "vn",
+    "overall": 74.65,
+    "photo": "/celebrities/hieuthuhai.webp",
+    "credit": {
+      "author": "KhanhVu - Director",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hieuthuhai_1.jpg"
+    }
+  },
+  {
+    "slug": "huong-giang",
+    "name": "Hương Giang",
+    "audience": "vn",
+    "overall": 82.17,
+    "photo": "/celebrities/huong-giang.webp",
+    "credit": {
+      "author": "USAID Vietnam",
+      "licence": "Public domain",
+      "licenceUrl": null,
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Huong_Giang_in_2015_(cropped).png"
+    }
+  },
+  {
+    "slug": "idris-elba",
+    "name": "Idris Elba",
+    "audience": "global",
+    "overall": 48.36,
+    "photo": "/celebrities/idris-elba.webp",
+    "credit": {
+      "author": "Harald Krichel",
+      "licence": "CC BY-SA 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Idris_Elba-4580_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "jack",
+    "name": "Jack J97",
+    "audience": "vn",
+    "overall": 48.99,
+    "photo": "/celebrities/jack.webp",
+    "credit": {
+      "author": "Startalk News",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jack_-_J97.png"
+    }
+  },
+  {
+    "slug": "keanu-reeves",
+    "name": "Keanu Reeves",
+    "audience": "global",
+    "overall": 44.42,
+    "photo": "/celebrities/keanu-reeves.webp",
+    "credit": {
+      "author": "Governo do Estado de São Paulo",
+      "licence": "CC BY 2.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Keanu_Reeves_2019_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "le-duong-bao-lam",
+    "name": "Lê Dương Bảo Lâm",
+    "audience": "vn",
+    "overall": 55.1,
+    "photo": "/celebrities/le-duong-bao-lam.webp",
+    "credit": {
+      "author": "Đàm Vĩnh Hưng",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:L%C3%AA_D%C6%B0%C6%A1ng_B%E1%BA%A3o_L%C3%A2m.png"
+    }
+  },
+  {
+    "slug": "lisa",
+    "name": "Lisa (BLACKPINK)",
+    "audience": "global",
+    "overall": 60.46,
+    "photo": "/celebrities/lisa.webp",
+    "credit": {
+      "author": "K-POPIT 케이팝잇",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Blackpink_Lisa_GMP_240622.png"
+    }
+  },
+  {
+    "slug": "margot-robbie",
+    "name": "Margot Robbie",
+    "audience": "global",
+    "overall": 54.14,
+    "photo": "/celebrities/margot-robbie.webp",
+    "credit": {
+      "author": "Gage Skidmore from Peoria, AZ, United States of America",
+      "licence": "CC BY-SA 2.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Margot_Robbie_(28316659170)_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "michael-b-jordan",
+    "name": "Michael B. Jordan",
+    "audience": "global",
+    "overall": 80.87,
+    "photo": "/celebrities/michael-b-jordan.webp",
+    "credit": {
+      "author": "Kevin Paul",
+      "licence": "CC BY 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Michael_B_Jordan_-_Sinners_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "nam-em",
+    "name": "Nam Em",
+    "audience": "vn",
+    "overall": 82.74,
+    "photo": "/celebrities/nam-em.webp",
+    "credit": {
+      "author": "GAME SHOW VIỆT",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Nam_Em_2020.png"
+    }
+  },
+  {
+    "slug": "nang-mo",
+    "name": "Nàng Mơ",
+    "audience": "vn",
+    "overall": 48.45,
+    "photo": null,
+    "credit": null
+  },
+  {
+    "slug": "phung-khanh-linh",
+    "name": "Phùng Khánh Linh",
+    "audience": "vn",
+    "overall": 64.54,
+    "photo": "/celebrities/phung-khanh-linh.webp",
+    "credit": {
+      "author": "Nguyenmy2302",
+      "licence": "CC BY-SA 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ph%C3%B9ng_Kh%C3%A1nh_Linh_n%C4%83m_2025.jpg"
+    }
+  },
+  {
+    "slug": "rihanna",
+    "name": "Rihanna",
+    "audience": "global",
+    "overall": 84.23,
+    "photo": "/celebrities/rihanna.webp",
+    "credit": {
+      "author": "SIGMA",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rihanna_Fenty_2018.png"
+    }
+  },
+  {
+    "slug": "ryan-gosling",
+    "name": "Ryan Gosling",
+    "audience": "global",
+    "overall": 53.23,
+    "photo": "/celebrities/ryan-gosling.webp",
+    "credit": {
+      "author": "Aubrey Gemignani",
+      "licence": "Public domain",
+      "licenceUrl": null,
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ryan_Gosling_in_2018.jpg"
+    }
+  },
+  {
+    "slug": "scarlett-johansson",
+    "name": "Scarlett Johansson",
+    "audience": "global",
+    "overall": 62.07,
+    "photo": "/celebrities/scarlett-johansson.webp",
+    "credit": {
+      "author": "Gage Skidmore",
+      "licence": "CC BY-SA 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Scarlett_Johansson_by_Gage_Skidmore_2_(cropped)_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "taylor-swift",
+    "name": "Taylor Swift",
+    "audience": "global",
+    "overall": 56.12,
+    "photo": "/celebrities/taylor-swift.webp",
+    "credit": {
+      "author": "iHeartRadioCA",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_4.png"
+    }
+  },
+  {
+    "slug": "timothee-chalamet",
+    "name": "Timothée Chalamet",
+    "audience": "global",
+    "overall": 59.33,
+    "photo": "/celebrities/timothee-chalamet.webp",
+    "credit": {
+      "author": "Amy Martin Photography",
+      "licence": "CC BY 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Timoth%C3%A9e_Chalamet_2025_2_(cropped).jpg"
+    }
+  },
+  {
+    "slug": "tom-holland",
+    "name": "Tom Holland",
+    "audience": "global",
+    "overall": 48.98,
+    "photo": "/celebrities/tom-holland.webp",
+    "credit": {
+      "author": "MTV International - YouTube",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tom_Holland_MTV_2018_(02).jpg"
+    }
+  },
+  {
+    "slug": "tran-thanh",
+    "name": "Trấn Thành",
+    "audience": "vn",
+    "overall": 60.14,
+    "photo": "/celebrities/tran-thanh.webp",
+    "credit": {
+      "author": "Htpt2507",
+      "licence": "CC BY-SA 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tr%E1%BA%A5n_Th%C3%A0nh.jpg"
+    }
+  },
+  {
+    "slug": "truong-giang",
+    "name": "Trường Giang",
+    "audience": "vn",
+    "overall": 45.01,
+    "photo": "/celebrities/truong-giang.webp",
+    "credit": {
+      "author": "CÀY PHIM NÀY NÈ",
+      "licence": "CC BY 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tr%C6%B0%E1%BB%9Dng_Giang_2026.png"
+    }
+  },
+  {
+    "slug": "v",
+    "name": "V (BTS)",
+    "audience": "global",
+    "overall": 50.84,
+    "photo": "/celebrities/v.webp",
+    "credit": {
+      "author": "Taehyung's Moment",
+      "licence": "CC BY 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:V_(Kim_Tae-hyung)_performing_at_the_TRB_in_Taipei_04.jpg"
+    }
+  },
+  {
+    "slug": "vo-hoang-yen",
+    "name": "Võ Hoàng Yến",
+    "audience": "vn",
+    "overall": 80.8,
+    "photo": "/celebrities/vo-hoang-yen.webp",
+    "credit": {
+      "author": "Vietnam International Fashion Week",
+      "licence": "CC BY 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vo_Hoang_Yen_(cropped).png"
+    }
+  },
+  {
+    "slug": "wren-evans",
+    "name": "Wren Evans",
+    "audience": "vn",
+    "overall": 49.68,
+    "photo": "/celebrities/wren-evans.webp",
+    "credit": {
+      "author": "YeaH1 Channel",
+      "licence": "CC BY 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Wren_Evans.png"
+    }
+  },
+  {
+    "slug": "zendaya",
+    "name": "Zendaya",
+    "audience": "global",
+    "overall": 80.78,
+    "photo": "/celebrities/zendaya.webp",
+    "credit": {
+      "author": "Toglenn",
+      "licence": "CC BY-SA 4.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zendaya_-_2019_by_Glenn_Francis.jpg"
+    }
+  }
+]

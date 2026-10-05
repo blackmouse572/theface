@@ -15,16 +15,17 @@ Status: agreed, not yet implemented. Date: 2026-09-18
 5. [Diagrams](#diagrams)
 6. [What gets rated](#what-gets-rated)
 7. [The results page](#the-results-page)
-8. [Why Screening and Verdict are ours to build](#why-screening-and-verdict-are-ours-to-build)
-9. [The Leaderboard](#the-leaderboard)
-10. [Portraits](#portraits)
-11. [Cost](#cost)
-12. [Abuse control](#abuse-control)
-13. [Stack](#stack)
-14. [Build checklist](#build-checklist)
-15. [Constants to calibrate after launch](#constants-to-calibrate-after-launch)
-16. [Open legal and vendor risks](#open-legal-and-vendor-risks)
-17. [Still to decide](#still-to-decide)
+8. [Celebrity Compliments](#celebrity-compliments)
+9. [Why Screening and Verdict are ours to build](#why-screening-and-verdict-are-ours-to-build)
+10. [The Leaderboard](#the-leaderboard)
+11. [Portraits](#portraits)
+12. [Cost](#cost)
+13. [Abuse control](#abuse-control)
+14. [Stack](#stack)
+15. [Build checklist](#build-checklist)
+16. [Constants to calibrate after launch](#constants-to-calibrate-after-launch)
+17. [Open legal and vendor risks](#open-legal-and-vendor-risks)
+18. [Still to decide](#still-to-decide)
 
 ## What this is
 
@@ -326,6 +327,29 @@ score more than eight and display the best eight.
 - **A low confidence value displays a "retake with better lighting" message** instead of a
   Rating. This is the lowest-cost protection against unreliable output.
 
+## Celebrity Compliments
+
+After the results appear, a pop-up compares the Visitor with one Celebrity and flatters
+them: "More beautiful than Anne Hathaway. Not even close." The design is
+[`docs/superpowers/specs/2026-10-05-celebrity-compliments-design.md`](./docs/superpowers/specs/2026-10-05-celebrity-compliments-design.md).
+
+- **The Roster** holds 24 international and 16 Vietnamese Celebrities. Each Overall comes
+  from an Observation written by hand and judged by the real Jev questions and Verdict.
+  See [ADR-0009](./docs/adr/0009-celebrities-observed-by-hand.md).
+- **The server chooses the Compliment** inside `scoreCrop`, so no Celebrity's number reaches
+  a browser. The choice is seeded by the Overall, so the same image always gets the same
+  Compliment.
+- **Three tiers, all flattering.** `top` beats the whole pool, `above` beats some of it, and
+  `league` beats none and is still a compliment. A Visitor beats a Celebrity within
+  `MATCH_MARGIN`.
+- **The Audience.** A request from Vietnam (`cf-ipcountry: VN`) gets Vietnamese lines and the
+  Vietnamese pool 70% of the time. The Audience never comes from the face (ADR-0003).
+- **Photos** come from Wikimedia Commons under CC0, public domain, CC BY or CC BY-SA, and
+  show their credit. A Celebrity without a free photo shows an initials badge.
+
+The numbers a Visitor sees are curved, and the numbers TheFace stores are raw. See
+[ADR-0008](./docs/adr/0008-shown-number-curved-stored-number-raw.md).
+
 ## Why Screening and Verdict are ours to build
 
 Three independent layers reject an unsuitable subject. They are ordered by cost:
@@ -515,6 +539,9 @@ Each value below cannot be set correctly before real data exists. Each is a sing
 | Overall weights               | The table in "The Overall" | Real Jev output across the Dimensions                                                                                                 |
 | Screening age threshold       | ~25 apparent age           | The observed false-reject rate                                                                                                        |
 | Screening face-area threshold | Not yet chosen             | Real Selfies at mobile framing                                                                                                        |
+| Display exponent              | 0.4                        | How the shown numbers feel. 1 switches the curve off (ADR-0008)                                                                       |
+| Compliment match margin       | 3 raw points               | The calibration probe, then the Tally against Roster numbers                                                                          |
+| Vietnamese pool share         | 0.7                        | Whether Visitors in Vietnam enjoy local or international names more                                                                   |
 
 ## Open legal and vendor risks
 

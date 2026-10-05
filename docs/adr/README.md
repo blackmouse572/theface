@@ -13,3 +13,4 @@ states what TheFace does. These records state why.
 | [0006](./0006-percentile-from-anonymous-tally.md) | Percentile comes from an anonymous Tally          | accepted |
 | [0007](./0007-craft-excluded-from-overall.md)     | The Overall excludes Craft Ratings                | accepted |
 | [0008](./0008-shown-number-curved-stored-number-raw.md) | The shown number is curved, the stored number is raw | accepted |
+| [0009](./0009-celebrities-observed-by-hand.md) | Celebrities are observed by hand, judged by Jev, and never shown rated | accepted |
