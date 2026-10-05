@@ -25,6 +25,7 @@ import {
 import { motion } from "motion/react";
 
 import { Button } from "@/components/ui";
+import { displayRating } from "@/lib/jev/display";
 import { AESTHETICS } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
 import type { Crop } from "@/lib/screening/crop.browser";
@@ -117,7 +118,9 @@ export function ScoreResultView({
       className="mt-5"
     >
       <div className="flex items-baseline gap-3">
-        <span className="font-mono text-5xl tabular-nums">{Math.round(overall)}</span>
+        <span className="font-mono text-5xl tabular-nums">
+          {Math.round(displayRating(overall))}
+        </span>
         <span className="text-muted-foreground text-sm">out of 100</span>
       </div>
 
@@ -147,14 +150,14 @@ export function ScoreResultView({
                 {DIMENSION_LABELS[key as keyof Ratings] ?? key}
               </span>
               <span className="text-muted-foreground font-mono tabular-nums">
-                {Math.round(value)}
+                {Math.round(displayRating(value))}
               </span>
             </div>
             <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
               <motion.div
                 className="h-full rounded-full bg-[var(--color-chart-1)]"
-                initial={{ width: reduced ? `${value}%` : "0%" }}
-                animate={{ width: `${value}%` }}
+                initial={{ width: reduced ? `${displayRating(value)}%` : "0%" }}
+                animate={{ width: `${displayRating(value)}%` }}
                 transition={{ ...CHART, delay: reduced ? 0 : stagger(index) + 0.08 }}
               />
             </div>

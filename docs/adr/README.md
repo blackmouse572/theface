@@ -12,3 +12,4 @@ states what TheFace does. These records state why.
 | [0005](./0005-mandatory-x-authentication.md)      | X authentication is mandatory for the Leaderboard | accepted |
 | [0006](./0006-percentile-from-anonymous-tally.md) | Percentile comes from an anonymous Tally          | accepted |
 | [0007](./0007-craft-excluded-from-overall.md)     | The Overall excludes Craft Ratings                | accepted |
+| [0008](./0008-shown-number-curved-stored-number-raw.md) | The shown number is curved, the stored number is raw | accepted |
