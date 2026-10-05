@@ -7,7 +7,6 @@ import {
   IconEye,
   IconEyeglass,
   IconHanger,
-  IconHeartHandshake,
   IconMask,
   IconMoodSmile,
   IconMoodSmileBeam,
@@ -25,6 +24,7 @@ import {
 import { motion } from "motion/react";
 
 import { Button } from "@/components/ui";
+import type { Compliment } from "@/lib/celebrities/compliment";
 import { displayRating } from "@/lib/jev/display";
 import { AESTHETICS } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
@@ -32,6 +32,7 @@ import type { Crop } from "@/lib/screening/crop.browser";
 import { CHART, FADE_IN, POP, stagger, useReducedMotion } from "@/lib/ui";
 
 import { ClaimDialog } from "./claim-dialog";
+import { ComplimentDialog, ComplimentRow, useAutoOpen } from "./compliment-dialog";
 import { ScoreDetailDialog } from "./score-detail-dialog";
 
 export const DIMENSION_LABELS: Partial<Record<keyof Ratings, string>> = {
@@ -84,6 +85,8 @@ export interface ScoreResultViewProps {
   readonly affinities: Record<AestheticKey, number>;
   /** The Crop this score came from, held for a possible Claim. See `claim-dialog.tsx`. */
   readonly crop: Crop | null;
+  /** The server's Compliment for this result, or null when there is none. */
+  readonly compliment?: Compliment | null;
   readonly onReset?: () => void;
 }
 
@@ -100,9 +103,11 @@ export function ScoreResultView({
   ratings,
   affinities,
   crop,
+  compliment = null,
   onReset,
 }: ScoreResultViewProps) {
   const reduced = useReducedMotion();
+  const [complimentOpen, setComplimentOpen] = useAutoOpen(compliment, reduced);
 
   const topRatings = Object.entries(ratings)
     .sort(([, a], [, b]) => b - a)
@@ -123,6 +128,17 @@ export function ScoreResultView({
         </span>
         <span className="text-muted-foreground text-sm">out of 100</span>
       </div>
+
+      {compliment ? (
+        <>
+          <ComplimentRow compliment={compliment} onOpen={() => setComplimentOpen(true)} />
+          <ComplimentDialog
+            compliment={compliment}
+            open={complimentOpen}
+            onOpenChange={setComplimentOpen}
+          />
+        </>
+      ) : null}
 
       {topAesthetic ? (
         <p className="text-muted-foreground mt-1 text-sm">

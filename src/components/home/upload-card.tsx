@@ -320,6 +320,7 @@ export function UploadCard({ onCrop, className }: UploadCardProps) {
             ratings={score.ratings}
             affinities={score.affinities}
             crop={crop}
+            compliment={score.compliment}
             onReset={reset}
           />
         ) : failure ? (
