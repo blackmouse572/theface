@@ -430,7 +430,7 @@ describe("the daily limit", () => {
 });
 
 describe("buildObservationRequest", () => {
-  it("samples deterministically: the same image must give the same Overall", () => {
+  it("switches sampling off and pins the seed, to narrow the spread between repeats", () => {
     const request = buildObservationRequest(CROP_BASE64);
 
     expect(DEFAULT_TEMPERATURE).toBe(0);

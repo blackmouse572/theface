@@ -43,8 +43,12 @@ export const OBSERVATION_MODEL = "@cf/mistralai/mistral-small-3.1-24b-instruct" 
  */
 export const DEFAULT_MAX_TOKENS = 1024;
 
-/** An Observation is a record of facts, and the same Crop must always give the same one, so
- * the same image always gets the same Overall. 0 removes sampling. */
+/**
+ * An Observation is a record of facts, so sampling is switched off. This narrows, but does not
+ * remove, the spread between repeat scorings of one Crop: measured on 2026-10-05, Workers AI
+ * still varied a field or two at temperature 0, and Jev varies on an identical Observation, so
+ * repeats differ by a few points. The owner accepted that spread.
+ */
 export const DEFAULT_TEMPERATURE = 0;
 
 /**

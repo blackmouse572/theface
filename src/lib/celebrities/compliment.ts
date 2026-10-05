@@ -2,9 +2,9 @@
  * Choosing the Compliment: the joke line that compares a Visitor with one Celebrity.
  *
  * Pure: no I/O, no clock, no Math.random. The choice is seeded by the Visitor's raw Overall
- * and Audience, so the same image (which gets the same Overall) always gets the same
- * Compliment. Runs on the server only, inside `scoreCrop`, and returns a name, a photo and a
- * credit, never a number: no Celebrity's Overall reaches a browser (ADR-0009).
+ * and Audience, so the same Overall always gets the same Compliment. Runs on the server only,
+ * inside `scoreCrop`, and returns a name, a photo and a credit, never a number: no Celebrity's
+ * Overall reaches a browser (ADR-0009).
  */
 import { LINES, NAME_SLOT, type ComplimentLang, type ComplimentTier } from "./lines";
 import type { Audience, Celebrity, Credit } from "./schema";

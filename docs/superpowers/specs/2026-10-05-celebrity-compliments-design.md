@@ -91,7 +91,13 @@ sampling, and everything after Jev is arithmetic.
   reproducibility of the generation").
 - `VisionRequest` gains `seed: number`, and `buildObservationRequest` sets it.
 
-**Scope of the promise.** The same image file gives the same Overall. A different photo of
+**Outcome, 2026-10-05.** Not achieved, and accepted by the owner. One Crop scored 79.21,
+81.32 and 77.71: Workers AI still varied two Observation fields at temperature 0 with a seed,
+and Jev returned 75.15, 71.86 and 72.33 for one identical Observation. The owner chose to
+accept the spread over a result cache or median-of-three scoring. Temperature 0 and the seed
+stay, because they narrow it.
+
+**Scope of the original promise.** The same image file gives the same Overall. A different photo of
 the same person still scores differently, because it is a different picture. Screening and
 the Crop are deterministic for the same file in the same browser.
 

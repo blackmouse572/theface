@@ -104,8 +104,9 @@ photograph. Both feed the Verdict.
 The model constrains its output with `response_format: { type: "json_schema" }`, which is
 what lets TheFace skip custom JSON repair code. Mistral rejects `guided_json`.
 
-The call runs at `temperature: 0` with a fixed `seed` (`OBSERVATION_SEED`), so the same Crop
-always produces the same Observation, and the same image always gets the same Overall.
+The call runs at `temperature: 0` with a fixed `seed` (`OBSERVATION_SEED`). That narrows the
+spread between repeat scorings of one Crop but does not remove it: Workers AI still varies a
+field or two, and Jev varies on an identical Observation, so repeats differ by a few points.
 
 Chosen by benchmark over `llama-4-scout` (the earlier choice) and `gemma-4-26b`, on five
 photos: Mistral left 2-5 of 42 Observation fields "not_assessable" against Scout's 8-11,
@@ -337,7 +338,7 @@ them: "More beautiful than Anne Hathaway. Not even close." The design is
   from an Observation written by hand and judged by the real Jev questions and Verdict.
   See [ADR-0009](./docs/adr/0009-celebrities-observed-by-hand.md).
 - **The server chooses the Compliment** inside `scoreCrop`, so no Celebrity's number reaches
-  a browser. The choice is seeded by the Overall, so the same image always gets the same
+  a browser. The choice is seeded by the Overall, so the same Overall always gets the same
   Compliment.
 - **Three tiers, all flattering.** `top` beats the whole pool, `above` beats some of it, and
   `league` beats none and is still a compliment. A Visitor beats a Celebrity within
