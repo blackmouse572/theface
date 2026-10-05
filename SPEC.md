@@ -103,6 +103,9 @@ photograph. Both feed the Verdict.
 The model constrains its output with `response_format: { type: "json_schema" }`, which is
 what lets TheFace skip custom JSON repair code. Mistral rejects `guided_json`.
 
+The call runs at `temperature: 0` with a fixed `seed` (`OBSERVATION_SEED`), so the same Crop
+always produces the same Observation, and the same image always gets the same Overall.
+
 Chosen by benchmark over `llama-4-scout` (the earlier choice) and `gemma-4-26b`, on five
 photos: Mistral left 2-5 of 42 Observation fields "not_assessable" against Scout's 8-11,
 passed the adult-face Verdict on all five where Scout failed one, and measured about 53

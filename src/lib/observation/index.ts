@@ -15,6 +15,7 @@ export {
   isDailyLimitError,
   observe,
   OBSERVATION_MODEL,
+  OBSERVATION_SEED,
   ObservationError,
   parseObservation,
 } from "./observe";

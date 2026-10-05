@@ -43,9 +43,16 @@ export const OBSERVATION_MODEL = "@cf/mistralai/mistral-small-3.1-24b-instruct" 
  */
 export const DEFAULT_MAX_TOKENS = 1024;
 
-/** An Observation is a record of facts, so the sampling should be near-deterministic. The
- * model's own default is 0.15. */
-export const DEFAULT_TEMPERATURE = 0.1;
+/** An Observation is a record of facts, and the same Crop must always give the same one, so
+ * the same image always gets the same Overall. 0 removes sampling. */
+export const DEFAULT_TEMPERATURE = 0;
+
+/**
+ * Sent with every call, so a repeat of the same Crop decodes the same way even where the
+ * provider's decoder is not perfectly greedy. Any fixed integer works. Changing it changes
+ * every future Observation, and therefore every future Overall.
+ */
+export const OBSERVATION_SEED = 42;
 
 const SUPPORTED_DATA_URL = /^data:image\/(?:jpeg|jpg|png|webp);base64,/i;
 
@@ -68,6 +75,7 @@ export interface VisionRequest {
   messages: VisionMessage[];
   max_tokens: number;
   temperature: number;
+  seed: number;
   response_format: { type: "json_schema"; json_schema: { name: string; schema: object } };
 }
 
@@ -148,6 +156,7 @@ export function buildObservationRequest(crop: string, options: ObserveOptions = 
     ],
     max_tokens: options.maxTokens ?? DEFAULT_MAX_TOKENS,
     temperature: options.temperature ?? DEFAULT_TEMPERATURE,
+    seed: OBSERVATION_SEED,
     response_format: {
       type: "json_schema",
       json_schema: { name: "observation", schema: OBSERVATION_JSON_SCHEMA },

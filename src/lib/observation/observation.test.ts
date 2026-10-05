@@ -3,9 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildObservationRequest,
   DEFAULT_MAX_TOKENS,
+  DEFAULT_TEMPERATURE,
   isDailyLimitError,
   observe,
   OBSERVATION_MODEL,
+  OBSERVATION_SEED,
   ObservationError,
   parseObservation,
 } from "./observe";
@@ -258,6 +260,16 @@ describe("observe", () => {
     expect(input?.max_tokens).toBeGreaterThan(256);
   });
 
+  it("sends the fixed seed with every call, so a repeat of one Crop decodes the same way", async () => {
+    const { ai, run } = stubAi({ response: JSON.stringify(validObservation()) });
+
+    await observe(ai, CROP_BASE64);
+
+    expect(run.mock.calls[0]?.[1].seed).toBe(42);
+    expect(OBSERVATION_SEED).toBe(42);
+    expect(run.mock.calls[0]?.[1].temperature).toBe(0);
+  });
+
   it("honours a caller's max_tokens", async () => {
     const { ai, run } = stubAi({ response: JSON.stringify(validObservation()) });
 
@@ -418,6 +430,15 @@ describe("the daily limit", () => {
 });
 
 describe("buildObservationRequest", () => {
+  it("samples deterministically: the same image must give the same Overall", () => {
+    const request = buildObservationRequest(CROP_BASE64);
+
+    expect(DEFAULT_TEMPERATURE).toBe(0);
+    expect(request.temperature).toBe(0);
+    expect(request.seed).toBe(42);
+    expect(OBSERVATION_SEED).toBe(42);
+  });
+
   it("builds the same request the call sends, without needing a binding", () => {
     const request = buildObservationRequest(CROP_BASE64);
 
