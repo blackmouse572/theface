@@ -24,6 +24,7 @@ import {
   parseImageInfo,
   PUBLIC_DIR,
   resolveCrop,
+  thumbWidthFor,
   type Candidate,
   type CommonsPage,
 } from "./lib";
@@ -32,27 +33,50 @@ import {
 const USER_AGENT = "TheFace-seed/0.1 (celebrity roster seeding; local script)";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
 
-async function commonsInfo(file: string): Promise<{ url: string; credit: Credit }> {
+/** GET with the seed User-Agent, backing off and retrying when Commons answers 429. */
+async function politeFetch(url: string): Promise<Response> {
+  for (let attempt = 1; ; attempt += 1) {
+    const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+    if (response.status !== 429 || attempt === 6) return response;
+    await new Promise((resolve) => setTimeout(resolve, 10_000 * attempt));
+  }
+}
+
+async function commonsQuery(file: string, extra: Record<string, string>): Promise<CommonsPage> {
   const params = new URLSearchParams({
     action: "query",
     prop: "imageinfo",
-    iiprop: "url|extmetadata",
     format: "json",
     formatversion: "2",
     titles: file,
+    ...extra,
   });
-  const response = await fetch(`${COMMONS_API}?${params}`, {
-    headers: { "User-Agent": USER_AGENT },
-  });
+  const response = await politeFetch(`${COMMONS_API}?${params}`);
   if (!response.ok) throw new Error(`${file}: Commons API answered ${response.status}`);
   const body = (await response.json()) as { query?: { pages?: CommonsPage[] } };
   const page = body.query?.pages?.[0];
   if (!page) throw new Error(`${file}: not found on Commons`);
-  return parseImageInfo(page);
+  return page;
+}
+
+/**
+ * Two calls: the original's width first, then a thumbnail at the standard width just below it.
+ * Commons throttles downloads of originals and of non-standard widths (`thumbWidthFor`).
+ */
+async function commonsInfo(file: string): Promise<{ url: string; credit: Credit }> {
+  const sized = await commonsQuery(file, { iiprop: "size" });
+  const width = sized.imageinfo?.[0]?.width;
+  if (!width) throw new Error(`${file}: Commons returned no width`);
+  return parseImageInfo(
+    await commonsQuery(file, {
+      iiprop: "url|extmetadata",
+      iiurlwidth: String(thumbWidthFor(width)),
+    }),
+  );
 }
 
 async function download(url: string, to: string): Promise<void> {
-  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+  const response = await politeFetch(url);
   if (!response.ok) throw new Error(`download answered ${response.status}`);
   await writeFile(to, Buffer.from(await response.arrayBuffer()));
 }

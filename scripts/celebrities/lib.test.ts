@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { CandidateSchema, parseImageInfo, resolveCrop, stripHtml, type CommonsPage } from "./lib";
+import {
+  CandidateSchema,
+  parseImageInfo,
+  resolveCrop,
+  stripHtml,
+  thumbWidthFor,
+  type CommonsPage,
+} from "./lib";
 
 describe("stripHtml", () => {
   it("keeps the text of a Commons Artist link", () => {
@@ -40,6 +47,18 @@ describe("resolveCrop", () => {
   });
 });
 
+describe("thumbWidthFor", () => {
+  it.each([
+    [739, 500],
+    [4000, 1920],
+    [1920, 1280],
+    [1921, 1920],
+    [10, 20],
+  ])("asks for a standard Wikimedia width below an original %i px wide: %i", (width, expected) => {
+    expect(thumbWidthFor(width)).toBe(expected);
+  });
+});
+
 describe("parseImageInfo", () => {
   const page: CommonsPage = {
     title: "File:Hieuthuhai 1.jpg",
@@ -66,6 +85,15 @@ describe("parseImageInfo", () => {
         sourceUrl: "https://commons.wikimedia.org/wiki/File:Hieuthuhai_1.jpg",
       },
     });
+  });
+
+  it("downloads Commons' thumbnail when it offers one, not the full original", () => {
+    const withThumb = structuredClone(page);
+    withThumb.imageinfo![0]!.thumburl =
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Hieuthuhai_1.jpg/1600px-Hieuthuhai_1.jpg";
+    expect(parseImageInfo(withThumb).url).toBe(
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Hieuthuhai_1.jpg/1600px-Hieuthuhai_1.jpg",
+    );
   });
 
   it("refuses a licence that is not free", () => {

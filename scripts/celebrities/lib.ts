@@ -84,11 +84,32 @@ export function resolveCrop(
   return { left, top, size };
 }
 
-/** One page of a Commons `prop=imageinfo&iiprop=url|extmetadata&formatversion=2` response. */
+/**
+ * Wikimedia's standard thumbnail widths (https://w.wiki/GHai). Commons throttles downloads of
+ * originals and of any other width, and answers them with 429.
+ */
+export const STANDARD_THUMB_WIDTHS = [
+  20, 40, 60, 120, 250, 330, 500, 960, 1280, 1920, 3840,
+] as const;
+
+/**
+ * The thumbnail width to ask Commons for: the largest standard width below the original's,
+ * capped at 1920. Asking for a width at or above the original makes the API hand back the
+ * original itself, which is the throttled download.
+ */
+export function thumbWidthFor(originalWidth: number): number {
+  const below = STANDARD_THUMB_WIDTHS.filter((width) => width <= 1920 && width < originalWidth);
+  return below.at(-1) ?? STANDARD_THUMB_WIDTHS[0];
+}
+
+/** One page of a Commons `prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=…&formatversion=2` response. */
 export interface CommonsPage {
   title: string;
   imageinfo?: Array<{
+    width?: number;
     url?: string;
+    /** Present when the request asked for `iiurlwidth`: a scaled copy, lighter on Commons. */
+    thumburl?: string;
     descriptionurl?: string;
     extmetadata?: Record<string, { value?: unknown }>;
   }>;
@@ -112,7 +133,7 @@ export function parseImageInfo(page: CommonsPage): { url: string; credit: Credit
     );
   }
   return {
-    url: info.url,
+    url: info.thumburl ?? info.url,
     credit: {
       author: text("Artist") || "Unknown author",
       licence,
