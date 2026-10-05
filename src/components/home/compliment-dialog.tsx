@@ -147,7 +147,7 @@ export function ComplimentDialog({ compliment, open, onOpenChange }: ComplimentD
               </a>
             </p>
           ) : null}
-          <DialogTitle className="mt-2 flex items-center justify-center gap-2 text-xl text-balance">
+          <DialogTitle className="mt-2 flex flex-col items-center gap-2 text-xl text-balance">
             <TierIcon aria-hidden="true" size={20} className="text-primary shrink-0" />
             {line}
           </DialogTitle>
