@@ -41,6 +41,11 @@ Only the **written description** - not your photo - is sent to **TypeSafe** (the
 model), which returns the scores. TypeSafe never receives your image; it cannot, as the
 model accepts text only.
 
+**Your country, for one moment.** Cloudflare tells us which country your request comes
+from. We use it only to choose which celebrities the joke after your score may mention -
+visitors in Vietnam also see Vietnamese celebrities - and then forget it. It is never
+stored or logged, and it is never guessed from your face.
+
 ### 4. After you see your scores
 
 Your cropped photo stays **in your browser's memory**. It is not on our servers. If you
@@ -131,6 +136,9 @@ different beauty traditions prize.
 This does **not** guess your ethnicity, nationality or origin. It rates how closely your face
 matches each described aesthetic. It rates the aesthetic's fit, not you. No output is a
 statement about who you are or where you are from.
+
+The celebrity joke after your score is a joke. It compares numbers. It never says you look
+like anyone, and no celebrity's own score is ever shown.
 
 ## Cookies
 

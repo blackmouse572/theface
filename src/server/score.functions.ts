@@ -5,6 +5,8 @@ import { env } from "cloudflare:workers";
 import { z } from "zod";
 
 import { incrementTally } from "@/db/queries";
+import { pickCompliment, type Compliment } from "@/lib/celebrities/compliment";
+import { loadRoster } from "@/lib/celebrities/roster";
 import {
   affinitiesFromAnswers,
   overallFromAnswers,
@@ -14,6 +16,7 @@ import {
 import { jevQuestions } from "@/lib/jev/questions";
 import type { AestheticKey, Ratings } from "@/lib/jev/types";
 import { ObservationError, observe } from "@/lib/observation";
+import { audienceFromRequest } from "@/server/audience";
 import { DAILY_LIMIT, rateLimiterName } from "@/server/rate-limiter";
 import { verifyTurnstile } from "@/server/turnstile";
 
@@ -43,10 +46,35 @@ export type ScoreResult =
       readonly overall: number;
       readonly ratings: Ratings;
       readonly affinities: Record<AestheticKey, number>;
+      /** The pop-up's joke, chosen here so no Celebrity's number reaches the browser.
+       *  Null when the Roster is empty or broken: scoring never fails for its sake. */
+      readonly compliment: Compliment | null;
     };
 
 function clientIp(): string {
   return getRequestHeader("cf-connecting-ip") ?? getRequestIP() ?? "unknown";
+}
+
+/**
+ * The Compliment for a raw Overall, or null. Never fails a scoring: a broken Roster costs
+ * the pop-up, not the result. The country goes straight into `audienceFromRequest` and is
+ * never logged.
+ */
+function complimentFor(overall: number): Compliment | null {
+  try {
+    // Optional and local-only, so it is not in the generated Env: production never sets it.
+    const override =
+      "AUDIENCE_OVERRIDE" in env && typeof env.AUDIENCE_OVERRIDE === "string"
+        ? env.AUDIENCE_OVERRIDE
+        : undefined;
+    const audience = audienceFromRequest(getRequestHeader("cf-ipcountry"), override);
+    return pickCompliment(overall, audience, loadRoster());
+  } catch (error) {
+    log.log("compliment: failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
 }
 
 export const scoreCrop = createServerFn({ method: "POST" })
@@ -99,12 +127,13 @@ export const scoreCrop = createServerFn({ method: "POST" })
       const overall = overallFromAnswers(answers, observation);
       const ratings = ratingsFromAnswers(answers);
       const affinities = affinitiesFromAnswers(answers);
-      log.log("scored", { overall: Math.round(overall) });
+      log.log("scored", { overall: Number(overall.toFixed(2)) });
 
       const db = getDb();
       await incrementTally(db, Math.round(overall));
 
-      return { ok: true, overall, ratings, affinities };
+      const compliment = complimentFor(overall);
+      return { ok: true, overall, ratings, affinities, compliment };
     } catch (error) {
       if (error instanceof ObservationError && error.failure === "daily_limit") {
         log.log("rejected", { reason: "ai-limit" });

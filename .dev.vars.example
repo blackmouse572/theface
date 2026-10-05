@@ -12,3 +12,8 @@ TWITTER_CLIENT_SECRET=
 TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
 
 RATE_LIMIT_SALT=
+
+# Local testing only. Forces the Audience of the celebrity Compliment, because `vite dev`
+# sends no cf-ipcountry header. "vn" gives the Vietnamese pool and Vietnamese lines.
+# Never set this in production.
+AUDIENCE_OVERRIDE=
