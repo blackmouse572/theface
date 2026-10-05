@@ -1,1 +1,387 @@
-[]
+[
+  {
+    "slug": "anne-hathaway",
+    "name": "Anne Hathaway",
+    "audience": "global",
+    "commonsFile": "File:Anne Hathaway at The Apprentice in NYC 03 (cropped).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "zendaya",
+    "name": "Zendaya",
+    "audience": "global",
+    "commonsFile": "File:Zendaya - 2019 by Glenn Francis.jpg",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.185,
+      "top": 0.083,
+      "size": 0.65
+    }
+  },
+  {
+    "slug": "margot-robbie",
+    "name": "Margot Robbie",
+    "audience": "global",
+    "commonsFile": "File:Margot Robbie (28316659170) (cropped).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "scarlett-johansson",
+    "name": "Scarlett Johansson",
+    "audience": "global",
+    "commonsFile": "File:Scarlett Johansson by Gage Skidmore 2 (cropped) (cropped).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "gal-gadot",
+    "name": "Gal Gadot",
+    "audience": "global",
+    "commonsFile": "File:Gal Gadot cropped lighting corrected.jpg",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.17,
+      "top": 0.077,
+      "size": 0.72
+    }
+  },
+  {
+    "slug": "beyonce",
+    "name": "Beyoncé",
+    "audience": "global",
+    "commonsFile": "File:Beyoncé at The Lion King European Premiere 2019.png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.31,
+      "top": 0.09,
+      "size": 0.5
+    }
+  },
+  {
+    "slug": "taylor-swift",
+    "name": "Taylor Swift",
+    "audience": "global",
+    "commonsFile": "File:Taylor Swift at the 2023 MTV Video Music Awards 4.png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.315,
+      "top": 0.131,
+      "size": 0.55
+    }
+  },
+  {
+    "slug": "rihanna",
+    "name": "Rihanna",
+    "audience": "global",
+    "commonsFile": "File:Rihanna Fenty 2018.png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.27,
+      "top": 0.098,
+      "size": 0.6
+    }
+  },
+  {
+    "slug": "deepika-padukone",
+    "name": "Deepika Padukone",
+    "audience": "global",
+    "commonsFile": "File:Deepika Padukone 2025 (1).png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.27,
+      "top": 0.06,
+      "size": 0.6
+    }
+  },
+  {
+    "slug": "ana-de-armas",
+    "name": "Ana de Armas",
+    "audience": "global",
+    "commonsFile": "File:Ana de Armas at the 2024 Toronto International Film Festival 05 (better crop).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "lisa",
+    "name": "Lisa (BLACKPINK)",
+    "audience": "global",
+    "commonsFile": "File:Blackpink Lisa GMP 240622.png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.175,
+      "top": 0.037,
+      "size": 0.65
+    }
+  },
+  {
+    "slug": "emma-watson",
+    "name": "Emma Watson",
+    "audience": "global",
+    "commonsFile": "File:Emma Watson 2012.jpg",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.14,
+      "top": 0.033,
+      "size": 0.7
+    }
+  },
+  {
+    "slug": "timothee-chalamet",
+    "name": "Timothée Chalamet",
+    "audience": "global",
+    "commonsFile": "File:Timothée Chalamet 2025 2 (cropped).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "brad-pitt",
+    "name": "Brad Pitt",
+    "audience": "global",
+    "commonsFile": "File:Brad Pitt 2019 by Glenn Francis.jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "chris-hemsworth",
+    "name": "Chris Hemsworth",
+    "audience": "global",
+    "commonsFile": "File:Chris Hemsworth by Gage Skidmore 2 (cropped).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "keanu-reeves",
+    "name": "Keanu Reeves",
+    "audience": "global",
+    "commonsFile": "File:Keanu Reeves 2019 (cropped).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "ryan-gosling",
+    "name": "Ryan Gosling",
+    "audience": "global",
+    "commonsFile": "File:Ryan Gosling in 2018.jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "henry-cavill",
+    "name": "Henry Cavill",
+    "audience": "global",
+    "commonsFile": "File:Henry Cavill (48417913146) (cropped).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "tom-holland",
+    "name": "Tom Holland",
+    "audience": "global",
+    "commonsFile": "File:Tom Holland MTV 2018 (02).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "cha-eun-woo",
+    "name": "Cha Eun-woo",
+    "audience": "global",
+    "commonsFile": "File:Cha Eun-woo, March 31, 2025.png",
+    "localPhoto": null
+  },
+  {
+    "slug": "v",
+    "name": "V (BTS)",
+    "audience": "global",
+    "commonsFile": "File:V (Kim Tae-hyung) performing at the TRB in Taipei 04.jpg",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.105,
+      "top": 0.011,
+      "size": 0.55
+    }
+  },
+  {
+    "slug": "idris-elba",
+    "name": "Idris Elba",
+    "audience": "global",
+    "commonsFile": "File:Idris Elba-4580 (cropped).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "cristiano-ronaldo",
+    "name": "Cristiano Ronaldo",
+    "audience": "global",
+    "commonsFile": "File:Cristiano Ronaldo 2018.jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "michael-b-jordan",
+    "name": "Michael B. Jordan",
+    "audience": "global",
+    "commonsFile": "File:Michael B Jordan - Sinners (cropped).jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "jack",
+    "name": "Jack J97",
+    "audience": "vn",
+    "commonsFile": "File:Jack - J97.png",
+    "localPhoto": null
+  },
+  {
+    "slug": "tran-thanh",
+    "name": "Trấn Thành",
+    "audience": "vn",
+    "commonsFile": "File:Trấn Thành.jpg",
+    "localPhoto": null
+  },
+  {
+    "slug": "truong-giang",
+    "name": "Trường Giang",
+    "audience": "vn",
+    "commonsFile": "File:Trường Giang 2026.png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.085,
+      "top": 0,
+      "size": 0.524
+    }
+  },
+  {
+    "slug": "hieuthuhai",
+    "name": "HIEUTHUHAI",
+    "audience": "vn",
+    "commonsFile": "File:Hieuthuhai 1.jpg",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.055,
+      "top": 0.014,
+      "size": 0.65
+    }
+  },
+  {
+    "slug": "le-duong-bao-lam",
+    "name": "Lê Dương Bảo Lâm",
+    "audience": "vn",
+    "commonsFile": "File:Lê Dương Bảo Lâm.png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.07,
+      "top": 0,
+      "size": 0.62
+    }
+  },
+  {
+    "slug": "nam-em",
+    "name": "Nam Em",
+    "audience": "vn",
+    "commonsFile": "File:Nam Em 2020.png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.16,
+      "top": 0.008,
+      "size": 0.62
+    }
+  },
+  {
+    "slug": "do-mixi",
+    "name": "Độ Mixi",
+    "audience": "vn",
+    "commonsFile": "File:20190411 Độ Mixi.jpg",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.04,
+      "top": 0,
+      "size": 0.72
+    }
+  },
+  {
+    "slug": "vo-hoang-yen",
+    "name": "Võ Hoàng Yến",
+    "audience": "vn",
+    "commonsFile": "File:Vo Hoang Yen (cropped).png",
+    "localPhoto": null
+  },
+  {
+    "slug": "huong-giang",
+    "name": "Hương Giang",
+    "audience": "vn",
+    "commonsFile": "File:Huong Giang in 2015 (cropped).png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.17,
+      "top": 0.007,
+      "size": 0.62
+    }
+  },
+  {
+    "slug": "wren-evans",
+    "name": "Wren Evans",
+    "audience": "vn",
+    "commonsFile": "File:Wren Evans.png",
+    "localPhoto": null
+  },
+  {
+    "slug": "chi-phien",
+    "name": "Chị Phiến",
+    "audience": "vn",
+    "commonsFile": "File:Chị Phiến.png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.37,
+      "top": 0.055,
+      "size": 0.32
+    }
+  },
+  {
+    "slug": "co-phuong-hang",
+    "name": "Cô Phương Hằng",
+    "audience": "vn",
+    "commonsFile": "File:20181013 Nguyễn Phương Hằng at Talkshow (cropped).png",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.185,
+      "top": 0.039,
+      "size": 0.65
+    }
+  },
+  {
+    "slug": "phung-khanh-linh",
+    "name": "Phùng Khánh Linh",
+    "audience": "vn",
+    "commonsFile": "File:Phùng Khánh Linh năm 2025.jpg",
+    "localPhoto": null,
+    "crop": {
+      "left": 0.261,
+      "top": 0.168,
+      "size": 0.523
+    }
+  },
+  {
+    "slug": "duong-gio-tai",
+    "name": "Dương Gió Tai",
+    "audience": "vn",
+    "commonsFile": null,
+    "localPhoto": "seed/celebrities/originals/duong-gio-tai.png",
+    "crop": {
+      "left": 0,
+      "top": 0.219,
+      "size": 0.96
+    }
+  },
+  {
+    "slug": "ha-moi",
+    "name": "Hà Môi",
+    "audience": "vn",
+    "commonsFile": null,
+    "localPhoto": "seed/celebrities/originals/ha-moi.png",
+    "crop": {
+      "left": 0.29,
+      "top": 0.038,
+      "size": 0.42
+    }
+  },
+  {
+    "slug": "nang-mo",
+    "name": "Nàng Mơ",
+    "audience": "vn",
+    "commonsFile": null,
+    "localPhoto": "seed/celebrities/originals/nang-mo.png",
+    "crop": {
+      "left": 0.23,
+      "top": 0.027,
+      "size": 0.52
+    }
+  }
+]
